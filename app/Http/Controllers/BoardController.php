@@ -39,6 +39,10 @@ class BoardController extends Controller
                     $query->orderBy('position');
                 },
                 'columns.tasks.assignee:id,name',
+                'columns.tasks.comments' => function ($query) {
+                    $query->latest();
+                },
+                'columns.tasks.comments.author:id,name',
             ]),
         ]);
     }

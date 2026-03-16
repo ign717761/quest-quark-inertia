@@ -3,6 +3,7 @@
 use App\Http\Controllers\BoardController;
 use App\Http\Controllers\ColumnController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TaskCommentController;
 use App\Http\Controllers\TaskMovementController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +43,9 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
     Route::patch('/tasks/{task}/move', [TaskMovementController::class, 'move'])->name('tasks.move');
+    Route::post('/tasks/{task}/comments', [TaskCommentController::class, 'store'])->name('comments.store');
+    Route::patch('/comments/{comment}', [TaskCommentController::class, 'update'])->name('comments.update');
+    Route::delete('/comments/{comment}', [TaskCommentController::class, 'destroy'])->name('comments.destroy');
 });
 
 

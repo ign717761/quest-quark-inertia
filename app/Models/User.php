@@ -39,4 +39,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Task::class, 'assignee_id');
     }
+
+    public function taskComments(): HasMany
+    {
+        return $this->hasMany(TaskComment::class, 'author_id');
+    }
 }

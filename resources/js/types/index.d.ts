@@ -43,6 +43,17 @@ export interface Task {
     updated_at: string;
     creator?: User;
     assignee?: User | null;
+    comments?: TaskComment[];
+}
+
+export interface TaskComment {
+    id: number;
+    task_id: number;
+    author_id: number;
+    body: string;
+    created_at: string;
+    updated_at: string;
+    author?: User;
 }
 
 export interface BoardUserPivot {
