@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import YandexAuthButton from '@/components/yandex-auth-button';
 import AuthLayout from '@/layouts/auth-layout';
 
 export default function Register() {
@@ -99,11 +100,13 @@ export default function Register() {
                                 {processing && <Spinner />}
                                 Создать аккаунт
                             </Button>
+
+                            <YandexAuthButton tabIndex={6} />
                         </div>
 
                         <div className="text-center text-sm text-muted-foreground">
                             У вас уже есть учетная запись?{' '}
-                            <TextLink href={login()} tabIndex={6}>
+                            <TextLink href={login()} tabIndex={7}>
                                 Вход
                             </TextLink>
                         </div>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\YandexSocialController;
 use App\Http\Controllers\BoardController;
 use App\Http\Controllers\ColumnController;
 use App\Http\Controllers\TaskController;
@@ -48,5 +49,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/comments/{comment}', [TaskCommentController::class, 'destroy'])->name('comments.destroy');
 });
 
+Route::get('/auth/yandex/redirect', [YandexSocialController::class, 'redirect'])->name('auth.yandex.redirect');
+Route::get('/auth/yandex/callback', [YandexSocialController::class, 'callback'])->name('auth.yandex.callback');
 
 require __DIR__ . '/settings.php';

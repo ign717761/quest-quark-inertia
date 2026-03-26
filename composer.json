@@ -14,8 +14,10 @@
         "laravel/fortify": "^1.30",
         "laravel/framework": "^13.0",
         "laravel/reverb": "^1.0",
+        "laravel/socialite": "^5.26",
         "laravel/tinker": "3.x-dev",
-        "laravel/wayfinder": "dev-main"
+        "laravel/wayfinder": "dev-main",
+        "socialiteproviders/yandex": "^4.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

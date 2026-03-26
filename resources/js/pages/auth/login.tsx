@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import YandexAuthButton from '@/components/yandex-auth-button';
 import AuthLayout from '@/layouts/auth-layout';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
@@ -95,12 +96,14 @@ export default function Login({
                                 {processing && <Spinner />}
                                 Войти
                             </Button>
+
+                            <YandexAuthButton tabIndex={5} />
                         </div>
 
                         {canRegister && (
                             <div className="text-center text-sm text-muted-foreground">
                                 У вас нет учетной записи?{' '}
-                                <TextLink href={register()} tabIndex={5}>
+                                <TextLink href={register()} tabIndex={6}>
                                     Регистрация
                                 </TextLink>
                             </div>
