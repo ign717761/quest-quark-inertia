@@ -12,9 +12,11 @@ import { Link, usePage } from '@inertiajs/react';
 export function NavMain({
     items = [],
     title = 'Платформа',
+    prefetch = true,
 }: {
     items: NavItem[];
     title: string;
+    prefetch?: boolean;
 }) {
     const page = usePage();
     return (
@@ -30,7 +32,7 @@ export function NavMain({
                             )}
                             tooltip={{ children: item.title }}
                         >
-                            <Link href={item.href} prefetch>
+                            <Link href={item.href} prefetch={prefetch}>
                                 {item.icon && <item.icon />}
                                 <span>{item.title}</span>
                             </Link>

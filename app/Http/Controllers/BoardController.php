@@ -55,7 +55,7 @@ class BoardController extends Controller
     {
         $boardService->updateBoard($board, $request->validated());
 
-        return back();
+        return redirect()->route('boards.show', $board);
     }
 
     public function destroy(Board $board, BoardService $boardService)

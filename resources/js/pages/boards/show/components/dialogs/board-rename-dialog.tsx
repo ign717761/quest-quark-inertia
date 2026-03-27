@@ -9,7 +9,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { BoardData } from '@/types';
 import { router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface BoardRenameDialogProps {
     board: BoardData;
@@ -25,6 +25,12 @@ export default function BoardRenameDialog({
     const [title, setTitle] = useState(board.title);
     const [loading, setLoading] = useState(false);
 
+    useEffect(() => {
+        if (open) {
+            setTitle(board.title);
+        }
+    }, [board.title, open]);
+
     const handleSubmit = () => {
         if (title.trim() === '' || title === board.title) {
             onOpenChange(false);
@@ -37,7 +43,11 @@ export default function BoardRenameDialog({
             { title: title.trim() },
             {
                 preserveScroll: true,
-                onSuccess: () => onOpenChange(false),
+                onSuccess: () => {
+                    onOpenChange(false);
+                    router.flushAll();
+                    router.reload({ only: ['auth', 'board'] });
+                },
                 onFinish: () => setLoading(false),
             },
         );
