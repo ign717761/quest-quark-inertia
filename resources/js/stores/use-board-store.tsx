@@ -4,9 +4,22 @@ import { create } from 'zustand';
 const sortTasksByPosition = (tasks: Task[]) =>
     [...tasks].sort((a, b) => a.position - b.position);
 
+const normalizeTasks = (tasks: Task[]) => sortTasksByPosition(tasks);
+
+const sortColumnsByPosition = (columns: ColumnWithTasks[]) =>
+    [...columns].sort((a, b) => a.position - b.position);
+
+const normalizeColumn = (column: ColumnWithTasks): ColumnWithTasks => ({
+    ...column,
+    tasks: normalizeTasks(column.tasks ?? []),
+});
+
+const normalizeColumns = (columns: ColumnWithTasks[]) =>
+    sortColumnsByPosition(columns).map(normalizeColumn);
+
 const orderTasksByIds = (tasks: Task[], orderedIds?: number[]) => {
     if (!orderedIds || orderedIds.length === 0) {
-        return sortTasksByPosition(tasks);
+        return normalizeTasks(tasks);
     }
 
     const taskMap = new Map(tasks.map((task) => [task.id, task]));
@@ -61,14 +74,7 @@ export const useBoardStore = create<BoardState>((set) => ({
     setBoard: (board) =>
         set({
             board,
-            columns: [...board.columns]
-                .sort((a, b) => a.position - b.position)
-                .map((col) => ({
-                    ...col,
-                    tasks: [...col.tasks].sort(
-                        (a, b) => a.position - b.position,
-                    ),
-                })),
+            columns: normalizeColumns(board.columns),
         }),
     updateColumns: (columns) => set({ columns }),
     updateColumnTitle: (columnId: number, title: string) =>
@@ -96,30 +102,29 @@ export const useBoardStore = create<BoardState>((set) => ({
 
             const nextColumn: ColumnWithTasks = {
                 ...column,
-                tasks: column.tasks ? sortTasksByPosition(column.tasks) : [],
+                tasks: normalizeTasks(column.tasks ?? []),
             };
 
             return {
-                columns: [...state.columns, nextColumn].sort(
-                    (a, b) => a.position - b.position,
-                ),
+                columns: normalizeColumns([...state.columns, nextColumn]),
             };
         }),
     updateColumn: (column) =>
         set((state) => ({
-            columns: [...state.columns]
+            columns: normalizeColumns(
+                [...state.columns]
                 .map((col) =>
                     col.id === column.id
                         ? {
                               ...col,
                               ...column,
                               tasks: column.tasks
-                                  ? sortTasksByPosition(column.tasks)
+                                  ? normalizeTasks(column.tasks)
                                   : col.tasks,
                           }
                         : col,
                 )
-                .sort((a, b) => a.position - b.position),
+            ),
         })),
     removeColumn: (columnId, columnIds, destinationColumn) =>
         set((state) => {
@@ -130,7 +135,7 @@ export const useBoardStore = create<BoardState>((set) => ({
                         ? {
                               ...col,
                               ...destinationColumn,
-                              tasks: sortTasksByPosition(
+                              tasks: normalizeTasks(
                                   destinationColumn.tasks ?? col.tasks,
                               ),
                           }
@@ -143,7 +148,7 @@ export const useBoardStore = create<BoardState>((set) => ({
             ) {
                 nextColumns.push({
                     ...destinationColumn,
-                    tasks: sortTasksByPosition(destinationColumn.tasks ?? []),
+                    tasks: normalizeTasks(destinationColumn.tasks ?? []),
                 });
             }
 
@@ -178,7 +183,7 @@ export const useBoardStore = create<BoardState>((set) => ({
 
                 return {
                     ...col,
-                    tasks: sortTasksByPosition([...col.tasks, task]),
+                    tasks: normalizeTasks([...col.tasks, task]),
                 };
             }),
         })),
@@ -209,7 +214,7 @@ export const useBoardStore = create<BoardState>((set) => ({
 
                 return {
                     ...col,
-                    tasks: sortTasksByPosition(updatedTasks),
+                    tasks: normalizeTasks(updatedTasks),
                 };
             }),
         })),

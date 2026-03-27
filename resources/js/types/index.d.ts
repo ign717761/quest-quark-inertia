@@ -74,6 +74,20 @@ export interface BoardData extends Board {
     users?: User[];
 }
 
+export type BoardRole = BoardUserPivot['role'];
+
+export interface DashboardBoard extends Board {
+    pivot?: Pick<BoardUserPivot, 'role'>;
+    columns: Array<Pick<ColumnWithTasks, 'tasks'>>;
+    users: User[];
+}
+
+export interface DashboardStats {
+    total_boards: number;
+    total_tasks: number;
+    total_members: number;
+}
+
 export interface Auth {
     user: User;
     boards: Board[];

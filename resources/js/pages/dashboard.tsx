@@ -1,45 +1,29 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { boardIcons, getBoardIcon } from '@/lib/board-icons';
 import boardsRoute from '@/routes/boards';
-import { User, type BreadcrumbItem } from '@/types';
+import {
+    DashboardBoard,
+    DashboardStats,
+    type BreadcrumbItem,
+} from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ClipboardList, Plus, TrendingUp, UserPlus, Users } from 'lucide-react';
 import { useState } from 'react';
-
-interface Board {
-    id: number;
-    title: string;
-    icon?: string;
-    pivot?: { role: string };
-    columns: Array<{ tasks: Task[] }>;
-    users: User[];
-}
-
-interface Task {
-    id: number;
-    title: string;
-    completed?: boolean;
-}
+import {
+    CreateBoardDialog,
+    type CreateBoardFormData,
+} from './dashboard/components/create-board-dialog';
+import {
+    InviteUserDialog,
+    type InviteUserFormData,
+} from './dashboard/components/invite-user-dialog';
 
 interface DashboardProps {
-    boards: Board[];
-    stats: {
-        total_boards: number;
-        total_tasks: number;
-        total_members: number;
-    };
+    boards: DashboardBoard[];
+    stats: DashboardStats;
 }
 
 export default function Dashboard({ boards = [], stats }: DashboardProps) {
@@ -47,18 +31,18 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
     const [inviteOpen, setInviteOpen] = useState(false);
     const [selectedBoard, setSelectedBoard] = useState<number | null>(null);
 
-    const { data, setData, post, reset, errors, processing } = useForm({
+    const createBoardForm = useForm<CreateBoardFormData>({
         title: '',
         icon: boardIcons[0]?.value ?? 'layout-grid',
     });
-    const inviteForm = useForm({ email: '' });
+    const inviteForm = useForm<InviteUserFormData>({ email: '' });
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(boardsRoute.store().url, {
+        createBoardForm.post(boardsRoute.store().url, {
             onSuccess: () => {
                 setOpen(false);
-                reset();
+                createBoardForm.reset();
             },
         });
     };
@@ -85,7 +69,6 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
             <Head title="Dashboard" />
 
             <div className="flex flex-1 flex-col gap-6 p-6">
-                {/* Статистика */}
                 <div className="grid gap-4 md:grid-cols-4">
                     <Card>
                         <CardContent className="p-6">
@@ -218,7 +201,6 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
                         );
                     })}
 
-                    {/* Кнопка создания новой доски */}
                     <button
                         onClick={() => setOpen(true)}
                         className="flex aspect-video flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/25 transition-all hover:border-muted-foreground/50 hover:bg-accent/50"
@@ -231,111 +213,24 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
                 </div>
             </div>
 
-            {/* Модалка создания доски (УСЛОВИЕ УБРАНО) */}
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent>
-                    <form onSubmit={submit}>
-                        <DialogHeader>
-                            <DialogTitle>Новая доска</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-2 py-4">
-                            <Label>Название</Label>
-                            <Input
-                                value={data.title}
-                                onChange={(e) =>
-                                    setData('title', e.target.value)
-                                }
-                                autoFocus
-                            />
-                            {errors.title && (
-                                <p className="text-sm text-destructive">
-                                    {errors.title}
-                                </p>
-                            )}
-                            <div className="space-y-2 pt-2">
-                                <Label>Иконка</Label>
-                                <div className="grid grid-cols-5 gap-2">
-                                    {boardIcons.map((icon) => {
-                                        const Icon = icon.icon;
-                                        const isActive =
-                                            data.icon === icon.value;
-                                        return (
-                                            <button
-                                                key={icon.value}
-                                                type="button"
-                                                onClick={() =>
-                                                    setData('icon', icon.value)
-                                                }
-                                                className={`flex h-16 flex-col items-center justify-center gap-1 rounded-lg border text-xs transition ${
-                                                    isActive
-                                                        ? 'border-primary bg-primary/10 text-primary'
-                                                        : 'border-muted hover:border-muted-foreground/50 hover:bg-accent/50'
-                                                }`}
-                                                aria-pressed={isActive}
-                                            >
-                                                <Icon className="h-5 w-5" />
-                                                <span>{icon.label}</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                {errors.icon && (
-                                    <p className="text-sm text-destructive">
-                                        {errors.icon}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button type="submit" disabled={processing}>
-                                Создать
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+            <CreateBoardDialog
+                open={open}
+                onOpenChange={setOpen}
+                form={createBoardForm}
+                onSubmit={submit}
+            />
 
-            {/* Модалка приглашения пользователя */}
-            <Dialog
+            <InviteUserDialog
                 open={inviteOpen}
                 onOpenChange={(val) => {
                     setInviteOpen(val);
-                    if (!val) setSelectedBoard(null);
+                    if (!val) {
+                        setSelectedBoard(null);
+                    }
                 }}
-            >
-                <DialogContent>
-                    <form onSubmit={handleInvite}>
-                        <DialogHeader>
-                            <DialogTitle>Пригласить пользователя</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                            <div className="space-y-2">
-                                <Label>Email пользователя</Label>
-                                <Input
-                                    type="email"
-                                    value={inviteForm.data.email}
-                                    onChange={(e) =>
-                                        inviteForm.setData(
-                                            'email',
-                                            e.target.value,
-                                        )
-                                    }
-                                    placeholder="user@example.com"
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button
-                                type="submit"
-                                disabled={inviteForm.processing}
-                            >
-                                Отправить приглашение
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+                form={inviteForm}
+                onSubmit={handleInvite}
+            />
         </AppLayout>
     );
 }

@@ -5,13 +5,9 @@ import AppLayout from '@/layouts/app-layout';
 import { useBoardStore } from '@/stores/use-board-store';
 import { BoardData, SharedData } from '@/types';
 
+import { BoardDialogs } from './components/BoardDialogs';
 import { BoardHeader } from './components/BoardHeader';
 import { KanbanBoard } from './components/KanbanBoard';
-import BoardDeleteDialog from './components/dialogs/board-delete-dialog';
-import BoardRenameDialog from './components/dialogs/board-rename-dialog';
-import BoardUsersDialog from './components/dialogs/board-users-dialog';
-import ColumnCreateDialog from './components/dialogs/column-create-dialog';
-import TaskCreateDialog from './components/dialogs/task-create-dialog';
 import { useBoardEvents } from './hooks/useBoardEvents';
 import { useBoardModals } from './hooks/useBoardModals';
 
@@ -30,11 +26,12 @@ export default function Show({ board: initialBoard }: ShowProps) {
         setBoard(initialBoard);
     }, [initialBoard, setBoard]);
 
-    if (!board) return null;
+    if (!board) {
+        return null;
+    }
 
-    const isAdmin =
-        board.users?.find((u) => u.id === auth.user.id)?.pivot?.role ===
-        'admin';
+    const currentUser = board.users?.find((user) => user.id === auth.user.id);
+    const isAdmin = currentUser?.pivot?.role === 'admin';
 
     return (
         <AppLayout
@@ -61,36 +58,15 @@ export default function Show({ board: initialBoard }: ShowProps) {
                 />
             </div>
 
-            {/* Модальные окна */}
-            <TaskCreateDialog
-                columnId={modals.currentColumnId}
-                open={modals.task.open}
-                onOpenChange={modals.task.setOpen}
-            />
-
-            <ColumnCreateDialog
-                boardId={board.id}
-                open={modals.column.open}
-                onOpenChange={modals.column.setOpen}
-            />
-
-            <BoardUsersDialog
-                boardId={board.id}
+            <BoardDialogs
+                board={board}
                 users={board.users || []}
-                open={modals.users.open}
-                onOpenChange={modals.users.setOpen}
-            />
-
-            <BoardRenameDialog
-                board={board}
-                open={modals.rename.open}
-                onOpenChange={modals.rename.setOpen}
-            />
-
-            <BoardDeleteDialog
-                board={board}
-                open={modals.delete.open}
-                onOpenChange={modals.delete.setOpen}
+                currentColumnId={modals.currentColumnId}
+                rename={modals.rename}
+                deleteModal={modals.delete}
+                usersModal={modals.users}
+                column={modals.column}
+                task={modals.task}
             />
         </AppLayout>
     );
