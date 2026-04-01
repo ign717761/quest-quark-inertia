@@ -7,8 +7,8 @@ use App\Events\TaskDeleted;
 use App\Events\TaskUpdated;
 use App\Http\Requests\TaskStoreRequest;
 use App\Http\Requests\TaskUpdateRequest;
-use App\Models\Task;
 use App\Models\Column;
+use App\Models\Task;
 use App\Services\TaskService;
 
 class TaskController extends Controller
@@ -42,7 +42,9 @@ class TaskController extends Controller
      */
     public function destroy(Task $task, TaskService $taskService)
     {
-        $this->authorize('update', $task->column->board);
+        /** @var Column $column */
+        $column = $task->column;
+        $this->authorize('update', $column->board);
 
         $result = $taskService->deleteTask($task);
 
@@ -56,8 +58,5 @@ class TaskController extends Controller
         return back()->with('success', 'Задача удалена');
     }
 
-    public function show()
-    {
-
-    }
+    public function show() {}
 }

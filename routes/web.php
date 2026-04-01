@@ -3,13 +3,13 @@
 use App\Http\Controllers\Auth\YandexSocialController;
 use App\Http\Controllers\BoardController;
 use App\Http\Controllers\ColumnController;
-use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskCommentController;
+use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskMovementController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 use Inertia\Inertia;
+use Laravel\Fortify\Features;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -52,4 +52,4 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/auth/yandex/redirect', [YandexSocialController::class, 'redirect'])->name('auth.yandex.redirect');
 Route::get('/auth/yandex/callback', [YandexSocialController::class, 'callback'])->name('auth.yandex.callback');
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

@@ -5,10 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $board_id
+ * @property string $title
+ * @property int $position
+ * @property Board $board
+ * @property Collection<int, Task> $tasks
+ */
 #[Fillable(['board_id', 'title', 'position'])]
 class Column extends Model
 {

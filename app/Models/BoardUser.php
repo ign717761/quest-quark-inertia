@@ -4,6 +4,4 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class BoardUser extends Model
-{
-}
+class BoardUser extends Model {}

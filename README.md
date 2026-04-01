@@ -120,7 +120,7 @@ php artisan key:generate
 Если PostgreSQL не установлен локально, можно поднять только базу через Docker:
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d
+docker compose up -d
 ```
 
 ### 4. Выполнить миграции
@@ -129,18 +129,24 @@ docker compose -f docker-compose.dev.yml up -d
 php artisan migrate
 ```
 
+Для ручного тестирования приложения удобно сразу залить демо-данные:
+
+```bash
+php artisan db:seed
+```
+
+Или полностью пересоздать базу с демо-данными:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
 ### 5. Запустить приложение
 
 В одном терминале:
 
 ```bash
 composer run dev
-```
-
-Во втором терминале запустить Reverb:
-
-```bash
-php artisan reverb:start
 ```
 
 После этого приложение будет доступно по адресу `http://127.0.0.1:8000` или `http://localhost:8000`.
@@ -162,6 +168,8 @@ composer run setup
 ```bash
 php artisan serve
 php artisan migrate
+php artisan db:seed
+php artisan migrate:fresh --seed
 php artisan queue:listen --tries=1
 php artisan reverb:start
 php artisan test
@@ -189,18 +197,9 @@ composer run test
 
 ## Docker
 
-В репозитории есть две Docker-конфигурации:
+В репозитории есть Docker-конфигурация:
 
-- `docker-compose.dev.yml` для быстрого запуска PostgreSQL в разработке
-- `docker-compose.yml` для запуска приложения, Nginx и PostgreSQL вместе
-
-Запуск полного стека:
-
-```bash
-docker compose up --build
-```
-
-Перед использованием полной конфигурации убедись, что данные подключения к базе в `docker-compose.yml` и `.env` совпадают с твоим окружением.
+- `compose.yml` для запуска приложения, Nginx и PostgreSQL вместе
 
 ## Основные маршруты
 
@@ -219,6 +218,22 @@ docker compose up --build
 composer run test
 ```
 
+## Демо-аккаунты
+
+После `php artisan db:seed` будут доступны фиксированные пользователи для ручной проверки ролей и доступа:
+
+- `admin@example.com` / `password`
+- `editor@example.com` / `password`
+- `viewer@example.com` / `password`
+- `outsider@example.com` / `password`
+
+Что удобно проверять:
+
+- `admin` видит все основные сценарии и может менять состав участников
+- `editor` может редактировать рабочие доски, но не администрировать приватную доску
+- `viewer` видит общую доску только на чтение
+- `outsider` не состоит ни в одной доске и даёт чистый сценарий пустого dashboard
+
 В проекте уже есть feature-тесты для:
 
 - аутентификации
@@ -232,7 +247,3 @@ composer run test
 - Приложение использует серверную аутентификацию Laravel и фронтенд на Inertia React.
 - Изменения в досках, колонках и задачах транслируются через события в реальном времени.
 - Для части фоновых процессов нужен работающий `queue:listen`, поэтому в разработке его стоит держать запущенным.
-
-## Лицензия
-
-Проект распространяется по лицензии MIT.

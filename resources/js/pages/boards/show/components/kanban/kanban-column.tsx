@@ -92,6 +92,9 @@ export default function KanbanColumn({
     const isAdmin =
         board?.users?.find((u) => u.id === auth.user.id)?.pivot?.role ===
         'admin';
+    const canCreateTask =
+        board?.users?.find((u) => u.id === auth.user.id)?.pivot?.role !==
+        'viewer';
 
     const [title, setTitle] = useState(column.title);
     const [isEditing, setIsEditing] = useState(false);
@@ -250,15 +253,17 @@ export default function KanbanColumn({
                     </SortableContext>
                 </CardContent>
 
-                <div className="p-2">
-                    <Button
-                        variant="ghost"
-                        className="h-8 w-full justify-start text-xs"
-                        onClick={onAddTask}
-                    >
-                        + Добавить задачу
-                    </Button>
-                </div>
+                {canCreateTask && (
+                    <div className="p-2">
+                        <Button
+                            variant="ghost"
+                            className="h-8 w-full justify-start text-xs"
+                            onClick={onAddTask}
+                        >
+                            + Добавить задачу
+                        </Button>
+                    </div>
+                )}
             </Card>
 
             <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>

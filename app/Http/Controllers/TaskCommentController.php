@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\TaskCommentStoreRequest;
 use App\Http\Requests\TaskCommentUpdateRequest;
+use App\Models\Column;
 use App\Models\Task;
 use App\Models\TaskComment;
 
@@ -31,7 +32,11 @@ class TaskCommentController extends Controller
     public function destroy(TaskComment $comment)
     {
         $user = request()->user();
-        $board = $comment->task->column->board;
+        /** @var Task $task */
+        $task = $comment->task;
+        /** @var Column $column */
+        $column = $task->column;
+        $board = $column->board;
         $isAuthor = (int) $comment->author_id === (int) $user?->id;
         $isAdmin = $user?->can('delete', $board) ?? false;
 

@@ -106,7 +106,8 @@ export default function TaskEditDialog({
     const canCreateComment = Boolean(
         boardUsers.find((user) => user.id === auth.user.id),
     );
-    const canDeleteTask = auth.user.id === task.creator_id;
+    const canDeleteTask = canManageTask && auth.user.id === task.creator_id;
+    const assignee = boardUsers.find((user) => user.id === task.assignee_id) ?? null;
 
     const comments = useMemo(() => task.comments || [], [task.comments]);
 
@@ -209,20 +210,30 @@ export default function TaskEditDialog({
                 <DialogContent className="h-[100dvh] max-h-[100dvh] w-full overflow-y-auto rounded-none p-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:h-auto sm:max-h-[85vh] sm:max-w-2xl sm:rounded-lg sm:p-6">
                     <form onSubmit={submit}>
                         <DialogHeader>
-                            <DialogTitle>Редактирование задачи</DialogTitle>
+                            <DialogTitle>
+                                {canManageTask
+                                    ? 'Редактирование задачи'
+                                    : 'Просмотр задачи'}
+                            </DialogTitle>
                         </DialogHeader>
 
                         <div className="grid gap-4 py-4">
                             <div className="space-y-4">
                                 <Label htmlFor="title">Название</Label>
-                                <Input
-                                    id="title"
-                                    value={data.title}
-                                    onChange={(e) =>
-                                        setData('title', e.target.value)
-                                    }
-                                    placeholder="Что нужно сделать?"
-                                />
+                                {canManageTask ? (
+                                    <Input
+                                        id="title"
+                                        value={data.title}
+                                        onChange={(e) =>
+                                            setData('title', e.target.value)
+                                        }
+                                        placeholder="Что нужно сделать?"
+                                    />
+                                ) : (
+                                    <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+                                        {task.title}
+                                    </div>
+                                )}
                                 {errors.title && (
                                     <p className="text-xs text-destructive">
                                         {errors.title}
@@ -232,51 +243,85 @@ export default function TaskEditDialog({
 
                             <div className="space-y-2">
                                 <Label htmlFor="description">Описание</Label>
-                                <RichTextEditor
-                                    id="description"
-                                    value={data.description}
-                                    onChange={(value) =>
-                                        setData('description', value)
-                                    }
-                                    placeholder="Добавьте деталей..."
-                                />
+                                {canManageTask ? (
+                                    <RichTextEditor
+                                        id="description"
+                                        value={data.description}
+                                        onChange={(value) =>
+                                            setData('description', value)
+                                        }
+                                        placeholder="Добавьте деталей..."
+                                    />
+                                ) : (
+                                    <div className="min-h-24 rounded-md border bg-muted/30 px-3 py-2 text-sm break-words text-foreground [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5">
+                                        {task.description ? (
+                                            <div
+                                                dangerouslySetInnerHTML={{
+                                                    __html: task.description,
+                                                }}
+                                            />
+                                        ) : (
+                                            <span className="text-muted-foreground">
+                                                Описание не заполнено.
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-2">
                                 <Label>Исполнитель</Label>
-                                <Select
-                                    value={data.assignee_id}
-                                    onValueChange={(value) =>
-                                        setData('assignee_id', value)
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Назначить пользователя" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">
-                                            <span className="flex items-center text-muted-foreground">
-                                                <User className="mr-2 h-4 w-4" />{' '}
-                                                Без исполнителя
-                                            </span>
-                                        </SelectItem>
-                                        {boardUsers?.map((user) => (
-                                            <SelectItem
-                                                key={user.id}
-                                                value={String(user.id)}
-                                            >
-                                                <span className="flex items-center">
-                                                    <div className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px]">
-                                                        {user.name
-                                                            .charAt(0)
-                                                            .toUpperCase()}
-                                                    </div>
-                                                    {user.name}
+                                {canManageTask ? (
+                                    <Select
+                                        value={data.assignee_id}
+                                        onValueChange={(value) =>
+                                            setData('assignee_id', value)
+                                        }
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Назначить пользователя" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">
+                                                <span className="flex items-center text-muted-foreground">
+                                                    <User className="mr-2 h-4 w-4" />{' '}
+                                                    Без исполнителя
                                                 </span>
                                             </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                            {boardUsers?.map((user) => (
+                                                <SelectItem
+                                                    key={user.id}
+                                                    value={String(user.id)}
+                                                >
+                                                    <span className="flex items-center">
+                                                        <div className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px]">
+                                                            {user.name
+                                                                .charAt(0)
+                                                                .toUpperCase()}
+                                                        </div>
+                                                        {user.name}
+                                                    </span>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <div className="flex min-h-10 items-center rounded-md border bg-muted/30 px-3 py-2 text-sm">
+                                        {assignee ? (
+                                            <span className="flex items-center gap-2">
+                                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold uppercase">
+                                                    {assignee.name.charAt(0)}
+                                                </span>
+                                                {assignee.name}
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center text-muted-foreground">
+                                                <User className="mr-2 h-4 w-4" />
+                                                Без исполнителя
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -300,11 +345,13 @@ export default function TaskEditDialog({
                                     variant="outline"
                                     onClick={() => onOpenChange(false)}
                                 >
-                                    Отмена
+                                    {canManageTask ? 'Отмена' : 'Закрыть'}
                                 </Button>
-                                <Button type="submit" disabled={processing}>
-                                    Сохранить
-                                </Button>
+                                {canManageTask && (
+                                    <Button type="submit" disabled={processing}>
+                                        Сохранить
+                                    </Button>
+                                )}
                             </div>
                         </DialogFooter>
                     </form>

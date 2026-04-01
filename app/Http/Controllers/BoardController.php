@@ -79,8 +79,7 @@ class BoardController extends Controller
         Board $board,
         User $user,
         BoardService $boardService
-    )
-    {
+    ) {
         $boardService->updateUserRole($board, $user, $request->validated()['role']);
 
         return back();
@@ -91,9 +90,8 @@ class BoardController extends Controller
         Board $board,
         User $user,
         BoardService $boardService
-    )
-    {
-        if (!$boardService->removeUser($board, $user, $request->user())) {
+    ) {
+        if (! $boardService->removeUser($board, $user, $request->user())) {
             return back()->withErrors(['error' => 'Вы не можете удалить себя из доски']);
         }
 

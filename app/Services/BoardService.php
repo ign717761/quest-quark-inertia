@@ -3,17 +3,22 @@
 namespace App\Services;
 
 use App\Models\Board;
+use App\Models\Column;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 
 class BoardService
 {
     public function getDashboardData(User $user): array
     {
+        /** @var Collection<int, Board> $boards */
         $boards = $user->boards()
             ->with(['users', 'columns.tasks'])
             ->get();
 
-        $totalTasks = $boards->sum(fn($board) => $board->columns->sum(fn($col) => $col->tasks->count()));
+        $totalTasks = $boards->sum(
+            fn (Board $board) => $board->columns->sum(fn (Column $column) => $column->tasks->count())
+        );
         $totalMembers = $boards->pluck('users')->flatten()->unique('id')->count();
 
         return [

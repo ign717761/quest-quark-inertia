@@ -13,6 +13,7 @@ class ColumnMoved implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public int $boardId;
+
     public array $columnIds;
 
     public function __construct(int $boardId, array $columnIds = [])
@@ -24,7 +25,7 @@ class ColumnMoved implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('board.' . $this->boardId),
+            new PrivateChannel('board.'.$this->boardId),
         ];
     }
 

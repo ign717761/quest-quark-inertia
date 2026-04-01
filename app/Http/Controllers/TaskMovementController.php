@@ -31,8 +31,7 @@ class TaskMovementController extends Controller
         ColumnMoveRequest $request,
         Column $column,
         TaskMovementService $taskMovementService
-    )
-    {
+    ) {
         $result = $taskMovementService->moveColumn($column, $request->validated()['position']);
 
         broadcast(new ColumnMoved($result['boardId'], $result['columnIds']))->toOthers();

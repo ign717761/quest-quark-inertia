@@ -23,7 +23,7 @@ class ColumnCreated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('board.' . $this->column->board_id),
+            new PrivateChannel('board.'.$this->column->board_id),
         ];
     }
 

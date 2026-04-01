@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Event;
 use Illuminate\Support\ServiceProvider;
+use SocialiteProviders\Manager\SocialiteWasCalled;
+use SocialiteProviders\Yandex\Provider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,8 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Event::listen(function (\SocialiteProviders\Manager\SocialiteWasCalled $event) {
-            $event->extendSocialite('yandex', \SocialiteProviders\Yandex\Provider::class);
+        Event::listen(function (SocialiteWasCalled $event) {
+            $event->extendSocialite('yandex', Provider::class);
         });
     }
 }

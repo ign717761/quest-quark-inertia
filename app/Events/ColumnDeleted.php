@@ -14,8 +14,11 @@ class ColumnDeleted implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public int $columnId;
+
     public int $boardId;
+
     public array $columnIds;
+
     public ?Column $destinationColumn;
 
     public function __construct(
@@ -23,8 +26,7 @@ class ColumnDeleted implements ShouldBroadcast
         int $boardId,
         array $columnIds = [],
         ?Column $destinationColumn = null,
-    )
-    {
+    ) {
         $this->columnId = $columnId;
         $this->boardId = $boardId;
         $this->columnIds = $columnIds;
@@ -34,7 +36,7 @@ class ColumnDeleted implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('board.' . $this->boardId),
+            new PrivateChannel('board.'.$this->boardId),
         ];
     }
 

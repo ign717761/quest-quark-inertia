@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\Column;
 use App\Models\Task;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -14,6 +15,7 @@ class TaskCreated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public Task $task;
+
     public array $taskIds;
 
     public function __construct(Task $task, array $taskIds = [])
@@ -24,8 +26,11 @@ class TaskCreated implements ShouldBroadcast
 
     public function broadcastOn(): array
     {
+        /** @var Column $column */
+        $column = $this->task->column;
+
         return [
-            new PrivateChannel('board.' . $this->task->column->board_id),
+            new PrivateChannel('board.'.$column->board_id),
         ];
     }
 

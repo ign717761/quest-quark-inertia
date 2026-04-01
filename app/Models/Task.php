@@ -5,12 +5,26 @@ namespace App\Models;
 use App\Models\Concerns\SortsByPosition;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $column_id
+ * @property int $creator_id
+ * @property int|null $assignee_id
+ * @property string $title
+ * @property string $description
+ * @property int $position
+ * @property Column $column
+ * @property User $creator
+ * @property User|null $assignee
+ * @property Collection<int, TaskComment> $comments
+ */
 #[Fillable(['column_id', 'creator_id', 'assignee_id', 'title', 'description', 'position'])]
 class Task extends Model
 {

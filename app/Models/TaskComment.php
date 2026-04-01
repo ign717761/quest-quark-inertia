@@ -7,6 +7,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $task_id
+ * @property int $author_id
+ * @property string $body
+ * @property Task $task
+ * @property User $author
+ */
 #[Fillable(['task_id', 'author_id', 'body'])]
 class TaskComment extends Model
 {

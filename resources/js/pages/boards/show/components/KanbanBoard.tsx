@@ -21,6 +21,7 @@ import {
 import { BoardData } from '@/types';
 
 import { useBoardStore } from '@/stores/use-board-store';
+import { usePage } from '@inertiajs/react';
 
 import { useKanbanDnd } from '../hooks/useKanbanDnd';
 import {
@@ -42,7 +43,8 @@ export function KanbanBoard({
     onAddColumn,
     onAddTask,
 }: KanbanBoardProps) {
-    const { columns } = useBoardStore();
+    const { auth } = usePage<{ auth: { user: { id: number } } }>().props;
+    const { board, columns } = useBoardStore();
     const {
         activeTask,
         taskDropPreview,
@@ -50,6 +52,9 @@ export function KanbanBoard({
         handleDragOver,
         handleDragEnd,
     } = useKanbanDnd(initialBoard);
+    const canCreateColumn =
+        board?.users?.find((user) => user.id === auth.user.id)?.pivot?.role !==
+        'viewer';
 
     const sensors = useSensors(
         useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -143,12 +148,14 @@ export function KanbanBoard({
                         ))}
                     </SortableContext>
 
-                    <button
-                        onClick={onAddColumn}
-                        className="flex h-12 w-80 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 text-sm font-medium text-muted-foreground transition-all hover:border-muted-foreground/50 hover:bg-accent/50"
-                    >
-                        + Добавить колонку
-                    </button>
+                    {canCreateColumn && (
+                        <button
+                            onClick={onAddColumn}
+                            className="flex h-12 w-80 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 text-sm font-medium text-muted-foreground transition-all hover:border-muted-foreground/50 hover:bg-accent/50"
+                        >
+                            + Добавить колонку
+                        </button>
+                    )}
                 </div>
 
                 <DragOverlay

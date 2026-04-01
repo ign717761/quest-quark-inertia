@@ -1,7 +1,11 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\FortifyServiceProvider;
+use Illuminate\Broadcasting\BroadcastServiceProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\FortifyServiceProvider::class,
-    Illuminate\Broadcasting\BroadcastServiceProvider::class,
+    AppServiceProvider::class,
+    FortifyServiceProvider::class,
+    BroadcastServiceProvider::class,
 ];

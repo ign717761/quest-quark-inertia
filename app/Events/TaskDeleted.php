@@ -13,8 +13,11 @@ class TaskDeleted implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public int $taskId;
+
     public int $columnId;
+
     public int $boardId;
+
     public array $taskIds;
 
     public function __construct(int $taskId, int $columnId, int $boardId, array $taskIds = [])
@@ -28,7 +31,7 @@ class TaskDeleted implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('board.' . $this->boardId),
+            new PrivateChannel('board.'.$this->boardId),
         ];
     }
 

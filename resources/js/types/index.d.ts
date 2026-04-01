@@ -117,6 +117,10 @@ export interface SharedData {
         author: string;
     };
     auth: Auth;
+    flash?: {
+        success?: string | null;
+        error?: string | null;
+    };
     sidebarOpen: boolean;
     [key: string]: unknown;
 }

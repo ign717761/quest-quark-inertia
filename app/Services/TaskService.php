@@ -52,7 +52,9 @@ class TaskService
         $columnId = $task->column_id;
         $oldPosition = $task->position;
         $taskId = $task->id;
-        $boardId = $task->column->board_id;
+        /** @var Column $column */
+        $column = $task->column;
+        $boardId = $column->board_id;
 
         DB::transaction(function () use ($task, $columnId, $oldPosition) {
             $task->delete();

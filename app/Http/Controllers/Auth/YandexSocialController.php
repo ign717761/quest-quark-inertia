@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Auth;
+use Laravel\Socialite\Facades\Socialite;
 use Str;
 
 class YandexSocialController extends Controller
@@ -23,12 +23,12 @@ class YandexSocialController extends Controller
             ->where('provider_id', $socialUser->getId())
             ->first();
 
-        if (!$user && $socialUser->getEmail()) {
+        if (! $user && $socialUser->getEmail()) {
             $user = User::where('email', $socialUser->getEmail())->first();
         }
 
-        if (!$user) {
-            $user = new User();
+        if (! $user) {
+            $user = new User;
             $user->name = $socialUser->getName() ?: $socialUser->getNickname() ?: 'Yandex User';
             $user->email = $socialUser->getEmail();
             $user->password = Str::random(40);
@@ -37,11 +37,11 @@ class YandexSocialController extends Controller
         $user->provider = 'yandex';
         $user->provider_id = $socialUser->getId();
 
-        if (!$user->name) {
+        if (! $user->name) {
             $user->name = $socialUser->getName() ?: $socialUser->getNickname() ?: 'Yandex User';
         }
 
-        if (!$user->email && $socialUser->getEmail()) {
+        if (! $user->email && $socialUser->getEmail()) {
             $user->email = $socialUser->getEmail();
         }
 

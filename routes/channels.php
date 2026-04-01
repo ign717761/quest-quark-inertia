@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Broadcast;
 use App\Models\Board;
+use Illuminate\Support\Facades\Broadcast;
 
 // Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 //     return (int) $user->id === (int) $id;
@@ -9,7 +9,7 @@ use App\Models\Board;
 
 Broadcast::channel('board.{boardId}', function ($user, $boardId) {
     $board = Board::query()->find($boardId);
-    if (!$board) {
+    if (! $board) {
         return false;
     }
 
