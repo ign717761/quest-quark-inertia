@@ -15,13 +15,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $user_id
  * @property string $title
- * @property string $icon
  * @property User $owner
  * @property Collection<int, Column> $columns
  * @property Collection<int, User> $users
  */
 #[UsePolicy(BoardPolicy::class)]
-#[Fillable(['title', 'icon', 'user_id'])]
+#[Fillable(['title', 'user_id'])]
 class Board extends Model
 {
     public function owner(): BelongsTo

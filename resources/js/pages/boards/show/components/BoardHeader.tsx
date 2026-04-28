@@ -6,7 +6,6 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { getBoardIcon } from '@/lib/board-icons';
 import { MoreVertical, Users } from 'lucide-react';
 
 import { BoardData } from '@/types';
@@ -26,20 +25,14 @@ export function BoardHeader({
     onDelete,
     onUsers,
 }: BoardHeaderProps) {
-    const BoardIcon = getBoardIcon(board.icon);
     return (
         <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
-                    <BoardIcon className="h-5 w-5" />
-                </span>
-                <h1
-                    className="cursor-pointer text-2xl font-bold tracking-tight transition-colors hover:text-primary"
-                    onClick={() => isAdmin && onRename()}
-                >
-                    {board.title}
-                </h1>
-            </div>
+            <h1
+                className="cursor-pointer text-2xl font-bold tracking-tight transition-colors hover:text-primary"
+                onClick={() => isAdmin && onRename()}
+            >
+                {board.title}
+            </h1>
 
             {isAdmin && (
                 <div className="flex items-center gap-2">

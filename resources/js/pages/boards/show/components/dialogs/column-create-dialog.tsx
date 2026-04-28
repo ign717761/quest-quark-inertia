@@ -8,6 +8,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useForm } from '@inertiajs/react';
 
 interface ColumnCreateDialogProps {
@@ -23,6 +30,7 @@ export default function ColumnCreateDialog({
 }: ColumnCreateDialogProps) {
     const { data, setData, post, processing, reset, errors } = useForm({
         title: '',
+        type: 'in_progress',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -30,6 +38,7 @@ export default function ColumnCreateDialog({
         post(`/boards/${boardId}/columns`, {
             onSuccess: () => {
                 reset();
+                setData('type', 'in_progress');
                 onOpenChange(false);
             },
             preserveScroll: true,
@@ -58,6 +67,28 @@ export default function ColumnCreateDialog({
                             {errors.title && (
                                 <p className="text-xs text-destructive">
                                     {errors.title}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Тип колонки</Label>
+                            <Select
+                                value={data.type}
+                                onValueChange={(value) => setData('type', value)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="backlog">Бэклог</SelectItem>
+                                    <SelectItem value="in_progress">В работе</SelectItem>
+                                    <SelectItem value="done">Готово</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.type && (
+                                <p className="text-xs text-destructive">
+                                    {errors.type}
                                 </p>
                             )}
                         </div>

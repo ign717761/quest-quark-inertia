@@ -2,58 +2,59 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\TaskCreated;
-use App\Events\TaskDeleted;
-use App\Events\TaskUpdated;
 use App\Http\Requests\TaskStoreRequest;
 use App\Http\Requests\TaskUpdateRequest;
 use App\Models\Column;
 use App\Models\Task;
-use App\Services\TaskService;
+use Illuminate\Support\Facades\DB;
 
 class TaskController extends Controller
 {
-    /**
-     * Создать новую задачу в колонке
-     */
-    public function store(TaskStoreRequest $request, Column $column, TaskService $taskService)
+    public function store(TaskStoreRequest $request, Column $column)
     {
-        $result = $taskService->createTask($column, $request->user()->id, $request->validated());
+        DB::transaction(function () use ($column, $request) {
+            Task::where('column_id', $column->id)->increment('position');
 
-        broadcast(new TaskCreated($result['task'], $result['taskIds']))->toOthers();
+            Task::create([
+                'column_id' => $column->id,
+                'creator_id' => $request->user()->id,
+                'assignee_id' => $request->validated()['assignee_id'] ?? null,
+                'title' => $request->validated()['title'],
+                'description' => $request->validated()['description'] ?? '',
+                'position' => 0,
+            ]);
+        });
 
         return back()->with('success', 'Задача создана');
     }
 
-    /**
-     * Обновить задачу
-     */
-    public function update(TaskUpdateRequest $request, Task $task, TaskService $taskService)
+    public function update(TaskUpdateRequest $request, Task $task)
     {
-        $task = $taskService->updateTask($task, $request->validated());
-
-        broadcast(new TaskUpdated($task))->toOthers();
+        $task->update([
+            'title' => $request->validated()['title'],
+            'description' => $request->validated()['description'] ?? '',
+            'assignee_id' => $request->validated()['assignee_id'] ?? null,
+        ]);
 
         return back()->with('success', 'Задача обновлена');
     }
 
-    /**
-     * Удалить задачу
-     */
-    public function destroy(Task $task, TaskService $taskService)
+    public function destroy(Task $task)
     {
         /** @var Column $column */
         $column = $task->column;
         $this->authorize('update', $column->board);
 
-        $result = $taskService->deleteTask($task);
+        $columnId = $task->column_id;
+        $oldPosition = $task->position;
 
-        broadcast(new TaskDeleted(
-            $result['taskId'],
-            $result['columnId'],
-            $result['boardId'],
-            $result['taskIds']
-        ))->toOthers();
+        DB::transaction(function () use ($task, $columnId, $oldPosition) {
+            $task->delete();
+
+            Task::inColumn($columnId)
+                ->where('position', '>', $oldPosition)
+                ->decrement('position');
+        });
 
         return back()->with('success', 'Задача удалена');
     }

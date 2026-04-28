@@ -2,7 +2,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { boardIcons, getBoardIcon } from '@/lib/board-icons';
 import boardsRoute from '@/routes/boards';
 import {
     DashboardBoard,
@@ -33,7 +32,6 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
 
     const createBoardForm = useForm<CreateBoardFormData>({
         title: '',
-        icon: boardIcons[0]?.value ?? 'layout-grid',
     });
     const inviteForm = useForm<InviteUserFormData>({ email: '' });
 
@@ -61,12 +59,12 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Dashboard', href: '/dashboard' },
+        { title: 'Главная', href: '/dashboard' },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
+            <Head title="Главная" />
 
             <div className="flex flex-1 flex-col gap-6 p-6">
                 <div className="grid gap-4 md:grid-cols-4">
@@ -130,7 +128,6 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
 
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {boards.map((board) => {
-                        const BoardIcon = getBoardIcon(board.icon);
                         const totalTasks = board.columns.reduce(
                             (sum, col) => sum + col.tasks.length,
                             0,
@@ -148,10 +145,7 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
 
                                 <div className="relative aspect-video p-6">
                                     <div className="mb-8 flex items-start justify-between">
-                                        <div className="relative z-20 flex items-center gap-2 text-lg font-bold text-card-foreground">
-                                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/70">
-                                                <BoardIcon className="h-4 w-4" />
-                                            </span>
+                                        <div className="relative z-20 text-lg font-bold text-card-foreground">
                                             <span>{board.title}</span>
                                         </div>
                                         {board.pivot?.role === 'admin' && (

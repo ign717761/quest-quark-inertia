@@ -16,11 +16,13 @@ test('deleting a column moves its tasks into the first remaining column', functi
     $columnToDelete = Column::create([
         'board_id' => $board->id,
         'title' => 'In Progress',
+        'type' => Column::TYPE_IN_PROGRESS,
         'position' => 0,
     ]);
     $destinationColumn = Column::create([
         'board_id' => $board->id,
         'title' => 'Done',
+        'type' => Column::TYPE_DONE,
         'position' => 1,
     ]);
 
@@ -82,6 +84,7 @@ test('deleting the last column creates a backlog column and keeps its tasks', fu
     $onlyColumn = Column::create([
         'board_id' => $board->id,
         'title' => 'Todo',
+        'type' => Column::TYPE_IN_PROGRESS,
         'position' => 0,
     ]);
 
@@ -105,6 +108,7 @@ test('deleting the last column creates a backlog column and keeps its tasks', fu
         ->sole();
 
     expect($replacementColumn->title)->toBe('Бэклог');
+    expect($replacementColumn->type)->toBe(Column::TYPE_BACKLOG);
     expect($replacementColumn->position)->toBe(0);
 
     $task->refresh();

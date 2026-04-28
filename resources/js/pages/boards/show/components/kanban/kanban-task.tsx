@@ -1,5 +1,6 @@
 import { useBoardStore } from '@/stores/use-board-store';
-import { Task } from '@/types';
+import { SharedData, Task } from '@/types';
+import { usePage } from '@inertiajs/react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Calendar } from 'lucide-react';
@@ -8,7 +9,15 @@ import TaskEditDialog from './task-edit-dialog';
 
 export default function KanbanTask({ task }: { task: Task }) {
     const board = useBoardStore((state) => state.board);
+    const { auth } = usePage<SharedData>().props;
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const column = board?.columns.find((item) => item.id === task.column_id);
+    const currentRole = board?.users?.find((user) => user.id === auth.user.id)?.pivot?.role;
+    const canDragTask =
+        currentRole === 'admin' ||
+        currentRole === 'editor' ||
+        task.assignee_id === auth.user.id ||
+        (task.assignee_id === null && column?.type === 'backlog');
 
     const {
         attributes,
@@ -20,6 +29,7 @@ export default function KanbanTask({ task }: { task: Task }) {
     } = useSortable({
         id: `task-${task.id}`,
         data: { type: 'task', task },
+        disabled: !canDragTask,
     });
 
     const style = {
@@ -43,9 +53,11 @@ export default function KanbanTask({ task }: { task: Task }) {
             <div
                 ref={setNodeRef}
                 style={style}
-                className="group relative flex cursor-grab flex-col gap-3 rounded-lg border bg-card p-3 shadow-sm transition-all duration-200 hover:border-primary/50 hover:shadow-md active:cursor-grabbing"
-                {...attributes}
-                {...listeners}
+                className={`group relative flex flex-col gap-3 rounded-lg border bg-card p-3 shadow-sm transition-all duration-200 hover:border-primary/50 hover:shadow-md ${
+                    canDragTask ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'
+                }`}
+                {...(canDragTask ? attributes : {})}
+                {...(canDragTask ? listeners : {})}
                 onClick={(e) => {
                     setIsModalOpen(true);
                 }}

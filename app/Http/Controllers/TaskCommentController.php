@@ -32,15 +32,9 @@ class TaskCommentController extends Controller
     public function destroy(TaskComment $comment)
     {
         $user = request()->user();
-        /** @var Task $task */
-        $task = $comment->task;
-        /** @var Column $column */
-        $column = $task->column;
-        $board = $column->board;
         $isAuthor = (int) $comment->author_id === (int) $user?->id;
-        $isAdmin = $user?->can('delete', $board) ?? false;
 
-        abort_unless($isAuthor || $isAdmin, 403);
+        abort_unless($isAuthor, 403);
 
         $comment->delete();
 

@@ -8,21 +8,35 @@ use App\Http\Requests\BoardStoreRequest;
 use App\Http\Requests\BoardUpdateRequest;
 use App\Http\Requests\BoardUpdateUserRoleRequest;
 use App\Models\Board;
+use App\Models\Column;
 use App\Models\User;
-use App\Services\BoardService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class BoardController extends Controller
 {
-    public function index(Request $request, BoardService $boardService)
+    public function index(Request $request): Response
     {
-        $data = $boardService->getDashboardData($request->user());
+        /** @var Collection<int, Board> $boards */
+        $boards = $request->user()
+            ->boards()
+            ->with(['users', 'columns.tasks'])
+            ->get();
+
+        $totalTasks = $boards->sum(
+            fn (Board $board) => $board->columns->sum(fn (Column $column) => $column->tasks->count())
+        );
+        $totalMembers = $boards->pluck('users')->flatten()->unique('id')->count();
 
         return Inertia::render('dashboard', [
-            'boards' => $data['boards'],
-            'stats' => $data['stats'],
+            'boards' => $boards,
+            'stats' => [
+                'total_boards' => $boards->count(),
+                'total_tasks' => $totalTasks,
+                'total_members' => $totalMembers,
+            ],
         ]);
     }
 
@@ -44,32 +58,39 @@ class BoardController extends Controller
         ]);
     }
 
-    public function store(BoardStoreRequest $request, BoardService $boardService)
+    public function store(BoardStoreRequest $request)
     {
-        $board = $boardService->createBoard($request->user(), $request->validated());
+        $board = Board::create([
+            'title' => $request->validated()['title'],
+            'user_id' => $request->user()->id,
+        ]);
+
+        $board->users()->attach($request->user()->id, ['role' => 'admin']);
 
         return redirect()->route('boards.show', $board->id);
     }
 
-    public function update(BoardUpdateRequest $request, Board $board, BoardService $boardService)
+    public function update(BoardUpdateRequest $request, Board $board)
     {
-        $boardService->updateBoard($board, $request->validated());
+        $board->update($request->validated());
 
         return redirect()->route('boards.show', $board);
     }
 
-    public function destroy(Board $board, BoardService $boardService)
+    public function destroy(Board $board)
     {
         $this->authorize('delete', $board);
 
-        $boardService->deleteBoard($board);
+        $board->delete();
 
         return redirect()->route('dashboard');
     }
 
-    public function invite(BoardInviteRequest $request, Board $board, BoardService $boardService)
+    public function invite(BoardInviteRequest $request, Board $board)
     {
-        $boardService->inviteUser($board, $request->validated()['email']);
+        $userToInvite = User::where('email', $request->validated()['email'])->firstOrFail();
+
+        $board->users()->syncWithoutDetaching([$userToInvite->id => ['role' => 'editor']]);
 
         return back();
     }
@@ -78,9 +99,8 @@ class BoardController extends Controller
         BoardUpdateUserRoleRequest $request,
         Board $board,
         User $user,
-        BoardService $boardService
     ) {
-        $boardService->updateUserRole($board, $user, $request->validated()['role']);
+        $board->users()->updateExistingPivot($user->id, ['role' => $request->validated()['role']]);
 
         return back();
     }
@@ -89,11 +109,12 @@ class BoardController extends Controller
         BoardRemoveUserRequest $request,
         Board $board,
         User $user,
-        BoardService $boardService
     ) {
-        if (! $boardService->removeUser($board, $user, $request->user())) {
+        if ($user->id === $request->user()->id) {
             return back()->withErrors(['error' => 'Вы не можете удалить себя из доски']);
         }
+
+        $board->users()->detach($user->id);
 
         return back();
     }

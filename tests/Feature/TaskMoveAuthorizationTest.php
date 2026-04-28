@@ -14,7 +14,6 @@ test('admin can move any task on the board', function () {
 
     $board = Board::create([
         'title' => 'Demo board',
-        'icon' => 'layout-grid',
         'user_id' => $admin->id,
     ]);
 
@@ -24,11 +23,13 @@ test('admin can move any task on the board', function () {
     $fromColumn = Column::create([
         'board_id' => $board->id,
         'title' => 'Todo',
+        'type' => Column::TYPE_BACKLOG,
         'position' => 0,
     ]);
     $toColumn = Column::create([
         'board_id' => $board->id,
         'title' => 'Done',
+        'type' => Column::TYPE_DONE,
         'position' => 1,
     ]);
 
@@ -48,7 +49,55 @@ test('admin can move any task on the board', function () {
         ])
         ->assertRedirect();
 
-    expect($task->fresh()->column_id)->toBe($toColumn->id);
+    expect($task->fresh())
+        ->column_id->toBe($toColumn->id)
+        ->assignee_id->toBe($assignee->id);
+});
+
+test('user can claim unassigned backlog task', function () {
+    $admin = createUser('admin@example.com');
+    $assignee = createUser('assignee@example.com');
+
+    $board = Board::create([
+        'title' => 'Demo board',
+        'user_id' => $admin->id,
+    ]);
+
+    $board->users()->attach($admin->id, ['role' => 'admin']);
+    $board->users()->attach($assignee->id, ['role' => 'viewer']);
+
+    $fromColumn = Column::create([
+        'board_id' => $board->id,
+        'title' => 'Todo',
+        'type' => Column::TYPE_BACKLOG,
+        'position' => 0,
+    ]);
+    $toColumn = Column::create([
+        'board_id' => $board->id,
+        'title' => 'Done',
+        'type' => Column::TYPE_DONE,
+        'position' => 1,
+    ]);
+
+    $task = Task::create([
+        'column_id' => $fromColumn->id,
+        'creator_id' => $admin->id,
+        'assignee_id' => null,
+        'title' => 'Unassigned backlog task',
+        'description' => 'Task description',
+        'position' => 0,
+    ]);
+
+    $this->actingAs($assignee)
+        ->patch(route('tasks.move', $task), [
+            'column_id' => $toColumn->id,
+            'task_ids' => [$task->id],
+        ])
+        ->assertRedirect();
+
+    expect($task->fresh())
+        ->column_id->toBe($toColumn->id)
+        ->assignee_id->toBe($assignee->id);
 });
 
 test('viewer can move a task assigned to them', function () {
@@ -57,7 +106,6 @@ test('viewer can move a task assigned to them', function () {
 
     $board = Board::create([
         'title' => 'Demo board',
-        'icon' => 'layout-grid',
         'user_id' => $owner->id,
     ]);
 
@@ -67,11 +115,13 @@ test('viewer can move a task assigned to them', function () {
     $fromColumn = Column::create([
         'board_id' => $board->id,
         'title' => 'Todo',
+        'type' => Column::TYPE_IN_PROGRESS,
         'position' => 0,
     ]);
     $toColumn = Column::create([
         'board_id' => $board->id,
         'title' => 'Doing',
+        'type' => Column::TYPE_IN_PROGRESS,
         'position' => 1,
     ]);
 
@@ -101,7 +151,6 @@ test('viewer cannot move a task assigned to another user', function () {
 
     $board = Board::create([
         'title' => 'Demo board',
-        'icon' => 'layout-grid',
         'user_id' => $owner->id,
     ]);
 
@@ -112,11 +161,13 @@ test('viewer cannot move a task assigned to another user', function () {
     $fromColumn = Column::create([
         'board_id' => $board->id,
         'title' => 'Todo',
+        'type' => Column::TYPE_IN_PROGRESS,
         'position' => 0,
     ]);
     $toColumn = Column::create([
         'board_id' => $board->id,
         'title' => 'Doing',
+        'type' => Column::TYPE_IN_PROGRESS,
         'position' => 1,
     ]);
 

@@ -2,57 +2,82 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\ColumnCreated;
-use App\Events\ColumnDeleted;
-use App\Events\ColumnUpdated;
 use App\Http\Requests\ColumnStoreRequest;
 use App\Http\Requests\ColumnUpdateRequest;
 use App\Models\Board;
 use App\Models\Column;
-use App\Services\ColumnService;
+use App\Models\Task;
+use Illuminate\Support\Facades\DB;
 
 class ColumnController extends Controller
 {
-    /**
-     * Создание новой колонки.
-     */
-    public function store(ColumnStoreRequest $request, Board $board, ColumnService $columnService)
+    public function store(ColumnStoreRequest $request, Board $board)
     {
-        $column = $columnService->createColumn($board, $request->validated());
-
-        broadcast(new ColumnCreated($column))->toOthers();
+        Column::create([
+            'board_id' => $board->id,
+            'title' => $request->validated()['title'],
+            'type' => $request->validated()['type'],
+            'position' => ($board->columns()->max('position') ?? -1) + 1,
+        ]);
 
         return back();
     }
 
-    /**
-     * Обновление заголовка колонки.
-     */
-    public function update(ColumnUpdateRequest $request, Column $column, ColumnService $columnService)
+    public function update(ColumnUpdateRequest $request, Column $column)
     {
-        $column = $columnService->updateColumn($column, $request->validated());
-
-        broadcast(new ColumnUpdated($column))->toOthers();
+        $column->update($request->safe()->only(['title', 'type']));
 
         return back();
     }
 
-    /**
-     * Удаление колонки с переносом её задач.
-     */
-    public function destroy(Column $column, ColumnService $columnService)
+    public function destroy(Column $column)
     {
         $this->authorize('update', $column->board);
 
-        $result = $columnService->deleteColumn($column);
+        $destinationColumn = null;
 
-        broadcast(new ColumnDeleted(
-            $result['columnId'],
-            $result['boardId'],
-            $result['columnIds'],
-            $result['destinationColumn'],
-        ))->toOthers();
+        DB::transaction(function () use ($column, &$destinationColumn) {
+            /** @var Board $board */
+            $board = $column->board;
+            $deletedPosition = $column->position;
+            $candidate = $board->columns()
+                ->where('id', '!=', $column->id)
+                ->orderBy('position')
+                ->first();
+            $destinationColumn = $candidate instanceof Column ? $candidate : null;
+
+            if ($destinationColumn === null) {
+                $destinationColumn = Column::create([
+                    'board_id' => $board->id,
+                    'title' => 'Бэклог',
+                    'type' => Column::TYPE_BACKLOG,
+                    'position' => ($board->columns()->max('position') ?? -1) + 1,
+                ]);
+            }
+
+            $this->moveTasksToColumn($column, $destinationColumn);
+            $column->delete();
+
+            $board->columns()
+                ->where('position', '>', $deletedPosition)
+                ->decrement('position');
+        });
 
         return back();
+    }
+
+    private function moveTasksToColumn(Column $sourceColumn, Column $destinationColumn): void
+    {
+        $nextPosition = (int) (Task::inColumn($destinationColumn->id)->max('position') ?? -1) + 1;
+
+        Task::inColumn($sourceColumn->id)
+            ->ordered()
+            ->get()
+            ->each(function (Task $task) use ($destinationColumn, &$nextPosition) {
+                $task->update([
+                    'column_id' => $destinationColumn->id,
+                    'position' => $nextPosition++,
+                ]);
+            });
     }
 }

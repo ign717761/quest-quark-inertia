@@ -10,7 +10,6 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { getBoardIcon } from '@/lib/board-icons';
 import { dashboard } from '@/routes';
 import boards from '@/routes/boards';
 import { SharedData, type NavItem } from '@/types';
@@ -20,7 +19,7 @@ import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
+        title: 'Главная',
         href: dashboard(),
         icon: LayoutGrid,
     },
@@ -34,7 +33,6 @@ export function AppSidebar() {
     const boardNavItems: NavItem[] = auth.boards.map((board) => ({
         title: board.title,
         href: boards.show(board.id),
-        icon: getBoardIcon(board.icon),
     }));
     return (
         <Sidebar collapsible="icon" variant="inset">

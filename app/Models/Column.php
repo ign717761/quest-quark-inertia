@@ -14,13 +14,27 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $board_id
  * @property string $title
+ * @property string $type
  * @property int $position
  * @property Board $board
  * @property Collection<int, Task> $tasks
  */
-#[Fillable(['board_id', 'title', 'position'])]
+#[Fillable(['board_id', 'title', 'type', 'position'])]
 class Column extends Model
 {
+    public const TYPE_BACKLOG = 'backlog';
+    public const TYPE_IN_PROGRESS = 'in_progress';
+    public const TYPE_DONE = 'done';
+
+    public static function types(): array
+    {
+        return [
+            self::TYPE_BACKLOG,
+            self::TYPE_IN_PROGRESS,
+            self::TYPE_DONE,
+        ];
+    }
+
     public function board(): BelongsTo
     {
         return $this->belongsTo(Board::class);
@@ -41,5 +55,10 @@ class Column extends Model
     protected function ordered(Builder $query): void
     {
         $query->orderBy('position');
+    }
+
+    public function isBacklog(): bool
+    {
+        return $this->type === self::TYPE_BACKLOG;
     }
 }

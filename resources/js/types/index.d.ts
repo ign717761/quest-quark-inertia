@@ -6,7 +6,6 @@ export interface User {
     name: string;
     email: string;
     avatar?: string;
-    email_verified_at?: string;
     created_at: string;
     updated_at: string;
     pivot?: BoardUserPivot;
@@ -16,7 +15,6 @@ export interface User {
 export interface Board {
     id: number;
     title: string;
-    icon?: string;
     user_id: number;
     created_at: string;
     updated_at: string;
@@ -26,6 +24,7 @@ export interface Column {
     id: number;
     board_id: number;
     title: string;
+    type: 'backlog' | 'in_progress' | 'done';
     position: number;
     created_at: string;
     updated_at: string;

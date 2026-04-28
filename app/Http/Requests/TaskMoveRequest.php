@@ -33,7 +33,14 @@ class TaskMoveRequest extends FormRequest
             return true;
         }
 
-        return (int) $task->assignee_id === (int) $user->id;
+        if ((int) $task->assignee_id === (int) $user->id) {
+            return true;
+        }
+
+        return $task->assignee_id === null
+            && $sourceColumn->isBacklog()
+            && $targetColumn->id !== $sourceColumn->id
+            && $sourceColumn->board->users()->whereKey($user->id)->exists();
     }
 
     public function rules(): array

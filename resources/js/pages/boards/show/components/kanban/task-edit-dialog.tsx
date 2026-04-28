@@ -16,6 +16,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import tasksRoute from '@/routes/tasks';
 import { SharedData, Task, type User as UserType } from '@/types';
 import { useForm, usePage, router } from '@inertiajs/react';
@@ -365,19 +366,17 @@ export default function TaskEditDialog({
                         </div>
 
                         {canCreateComment && (
-                            <form
-                                onSubmit={submitComment}
-                                className="mb-4"
-                            >
+                            <form onSubmit={submitComment} className="mb-4">
                                 <Label htmlFor="new-comment" className="sr-only">
                                     Новый комментарий
                                 </Label>
-                                <RichTextEditor
+                                <Textarea
                                     id="new-comment"
                                     value={commentData.body}
-                                    onChange={(value) =>
-                                        setCommentData('body', value)
+                                    onChange={(event) =>
+                                        setCommentData('body', event.target.value)
                                     }
+                                    rows={4}
                                     placeholder="Добавьте комментарий..."
                                 />
                                 <div className="mt-2 flex justify-end">
@@ -402,8 +401,7 @@ export default function TaskEditDialog({
                         <div className="space-y-4">
                             {comments.map((comment) => {
                                 const isAuthor = comment.author_id === auth.user.id;
-                                const canManageComment =
-                                    isAuthor || currentRole === 'admin';
+                                const canManageComment = isAuthor;
 
                                 return (
                                     <div
@@ -455,11 +453,10 @@ export default function TaskEditDialog({
                                                     {editingCommentId !==
                                                         comment.id && (
                                                         <div
-                                                            className="text-sm break-words text-foreground [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5"
-                                                            dangerouslySetInnerHTML={{
-                                                                __html: comment.body,
-                                                            }}
-                                                        />
+                                                            className="whitespace-pre-wrap text-sm break-words text-foreground"
+                                                        >
+                                                            {comment.body}
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
@@ -500,14 +497,15 @@ export default function TaskEditDialog({
 
                                         {editingCommentId === comment.id ? (
                                             <div className="mt-2 space-y-2">
-                                                <RichTextEditor
+                                                <Textarea
                                                     value={editCommentData.body}
-                                                    onChange={(value) =>
+                                                    onChange={(event) =>
                                                         setEditCommentData(
                                                             'body',
-                                                            value,
+                                                            event.target.value,
                                                         )
                                                     }
+                                                    rows={4}
                                                 />
                                                 {editCommentErrors.body && (
                                                     <p className="text-xs text-destructive">

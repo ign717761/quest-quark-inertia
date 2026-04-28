@@ -22,8 +22,8 @@ export default function DeleteUser() {
     return (
         <div className="space-y-6">
             <HeadingSmall
-                title="Delete account"
-                description="Delete your account and all of its resources"
+                title="Удаление аккаунта"
+                description="Удалите свой аккаунт и все связанные ресурсы."
             />
             <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
                 <div className="relative space-y-0.5 text-red-600 dark:text-red-100">

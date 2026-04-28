@@ -15,11 +15,7 @@ class TaskCommentUpdateRequest extends FormRequest
             return false;
         }
 
-        $board = $comment->task->column->board;
-        $isAuthor = (int) $comment->author_id === (int) $user->id;
-        $isAdmin = $user->can('delete', $board);
-
-        return $isAuthor || $isAdmin;
+        return (int) $comment->author_id === (int) $user->id;
     }
 
     public function rules(): array

@@ -1,12 +1,10 @@
 <?php
 
-use App\Http\Controllers\Auth\YandexSocialController;
 use App\Http\Controllers\BoardController;
 use App\Http\Controllers\ColumnController;
 use App\Http\Controllers\TaskCommentController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskMovementController;
-use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -16,8 +14,6 @@ Route::get('/', function () {
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
-
-Broadcast::routes(['middleware' => ['auth']]);
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [BoardController::class, 'index'])->name('dashboard');
@@ -48,8 +44,5 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/comments/{comment}', [TaskCommentController::class, 'update'])->name('comments.update');
     Route::delete('/comments/{comment}', [TaskCommentController::class, 'destroy'])->name('comments.destroy');
 });
-
-Route::get('/auth/yandex/redirect', [YandexSocialController::class, 'redirect'])->name('auth.yandex.redirect');
-Route::get('/auth/yandex/callback', [YandexSocialController::class, 'callback'])->name('auth.yandex.callback');
 
 require __DIR__.'/settings.php';

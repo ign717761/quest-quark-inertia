@@ -8,7 +8,6 @@ import { BoardData, SharedData } from '@/types';
 import { BoardDialogs } from './components/BoardDialogs';
 import { BoardHeader } from './components/BoardHeader';
 import { KanbanBoard } from './components/KanbanBoard';
-import { useBoardEvents } from './hooks/useBoardEvents';
 import { useBoardModals } from './hooks/useBoardModals';
 
 type ShowProps = {
@@ -20,7 +19,6 @@ export default function Show({ board: initialBoard }: ShowProps) {
     const { board, setBoard } = useBoardStore();
 
     const modals = useBoardModals();
-    useBoardEvents(initialBoard.id);
 
     useEffect(() => {
         setBoard(initialBoard);
@@ -36,7 +34,7 @@ export default function Show({ board: initialBoard }: ShowProps) {
     return (
         <AppLayout
             breadcrumbs={[
-                { title: 'Dashboard', href: '/dashboard' },
+                { title: 'Главная', href: '/dashboard' },
                 { title: board.title, href: '#' },
             ]}
         >

@@ -47,7 +47,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
                 'boards' => $request->user()
-                    ? $request->user()->boards()->select('boards.id', 'boards.title', 'boards.icon')->get()
+                    ? $request->user()->boards()->select('boards.id', 'boards.title')->get()
                     : [],
             ],
             'flash' => [

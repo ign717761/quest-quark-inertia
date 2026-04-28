@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Column;
 use App\Models\Board;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -16,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Board::class);
             $table->string('title');
+            $table->string('type')->default(Column::TYPE_IN_PROGRESS);
             $table->integer('position');
             $table->timestamps();
         });

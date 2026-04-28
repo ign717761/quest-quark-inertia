@@ -63,7 +63,6 @@ class FortifyServiceProvider extends ServiceProvider
         ]));
 
         Fortify::registerView(fn () => Inertia::render('auth/register'));
-
     }
 
     /**

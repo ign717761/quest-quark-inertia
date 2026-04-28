@@ -7,7 +7,6 @@ test('board rename updates the board and redirects back to the board page', func
     $user = User::factory()->create();
     $board = Board::create([
         'title' => 'Старая доска',
-        'icon' => 'layout-grid',
         'user_id' => $user->id,
     ]);
 

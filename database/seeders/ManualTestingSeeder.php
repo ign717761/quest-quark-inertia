@@ -51,7 +51,7 @@ class ManualTestingSeeder extends Seeder
                 'user_id' => $owner->id,
                 'title' => $definition['title'],
             ],
-            ['icon' => $definition['icon']],
+            [],
         );
 
         $board->users()->sync(
@@ -74,6 +74,7 @@ class ManualTestingSeeder extends Seeder
             $column = Column::create([
                 'board_id' => $board->id,
                 'title' => $columnDefinition['title'],
+                'type' => $columnDefinition['type'],
                 'position' => $columnIndex,
             ]);
 
@@ -131,7 +132,6 @@ class ManualTestingSeeder extends Seeder
         return [
             [
                 'title' => 'Запуск продукта',
-                'icon' => 'rocket',
                 'owner' => 'admin',
                 'members' => [
                     'admin' => 'admin',
@@ -141,6 +141,7 @@ class ManualTestingSeeder extends Seeder
                 'columns' => [
                     [
                         'title' => 'Идеи',
+                        'type' => 'backlog',
                         'tasks' => [
                             [
                                 'title' => 'Собрать список лендингов для вдохновения',
@@ -164,6 +165,7 @@ class ManualTestingSeeder extends Seeder
                     ],
                     [
                         'title' => 'В работе',
+                        'type' => 'in_progress',
                         'tasks' => [
                             [
                                 'title' => 'Подготовить контент для welcome-экрана',
@@ -183,7 +185,7 @@ class ManualTestingSeeder extends Seeder
                             ],
                             [
                                 'title' => 'Настроить аналитику регистрации',
-                                'description' => 'Проверить отправку события после успешной регистрации и входа через социальный провайдер.',
+                                'description' => 'Проверить отправку события после успешной регистрации и обычного входа по email и паролю.',
                                 'creator' => 'editor',
                                 'assignee' => 'admin',
                             ],
@@ -191,6 +193,7 @@ class ManualTestingSeeder extends Seeder
                     ],
                     [
                         'title' => 'На проверке',
+                        'type' => 'in_progress',
                         'tasks' => [
                             [
                                 'title' => 'Прогнать ручной smoke-тест доски',
@@ -208,6 +211,7 @@ class ManualTestingSeeder extends Seeder
                     ],
                     [
                         'title' => 'Готово',
+                        'type' => 'done',
                         'tasks' => [
                             [
                                 'title' => 'Создать доску запуска',
@@ -221,7 +225,6 @@ class ManualTestingSeeder extends Seeder
             ],
             [
                 'title' => 'Внутренние улучшения',
-                'icon' => 'briefcase',
                 'owner' => 'editor',
                 'members' => [
                     'editor' => 'admin',
@@ -230,6 +233,7 @@ class ManualTestingSeeder extends Seeder
                 'columns' => [
                     [
                         'title' => 'Бэклог',
+                        'type' => 'backlog',
                         'tasks' => [
                             [
                                 'title' => 'Разобрать фидбек по drag and drop',
@@ -247,6 +251,7 @@ class ManualTestingSeeder extends Seeder
                     ],
                     [
                         'title' => 'В процессе',
+                        'type' => 'in_progress',
                         'tasks' => [
                             [
                                 'title' => 'Упростить форму приглашения пользователя',
@@ -264,6 +269,7 @@ class ManualTestingSeeder extends Seeder
                     ],
                     [
                         'title' => 'Готово',
+                        'type' => 'done',
                         'tasks' => [
                             [
                                 'title' => 'Подключить базовые сиды для демо',
@@ -277,7 +283,6 @@ class ManualTestingSeeder extends Seeder
             ],
             [
                 'title' => 'Личная админская доска',
-                'icon' => 'monitor',
                 'owner' => 'admin',
                 'members' => [
                     'admin' => 'admin',
@@ -285,6 +290,7 @@ class ManualTestingSeeder extends Seeder
                 'columns' => [
                     [
                         'title' => 'Сегодня',
+                        'type' => 'in_progress',
                         'tasks' => [
                             [
                                 'title' => 'Проверить пустой dashboard у outsider',
@@ -296,6 +302,7 @@ class ManualTestingSeeder extends Seeder
                     ],
                     [
                         'title' => 'Потом',
+                        'type' => 'backlog',
                         'tasks' => [
                             [
                                 'title' => 'Подготовить сценарий демонстрации прав доступа',

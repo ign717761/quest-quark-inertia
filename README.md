@@ -89,14 +89,9 @@ DB_DATABASE=laravel
 DB_USERNAME=laravel
 DB_PASSWORD=laravel
 
-BROADCAST_CONNECTION=reverb
 QUEUE_CONNECTION=database
 SESSION_DRIVER=database
 CACHE_STORE=database
-
-REVERB_HOST=localhost
-REVERB_PORT=8080
-REVERB_SCHEME=http
 ```
 
 ## Локальный запуск
@@ -171,7 +166,6 @@ php artisan migrate
 php artisan db:seed
 php artisan migrate:fresh --seed
 php artisan queue:listen --tries=1
-php artisan reverb:start
 php artisan test
 ```
 
@@ -181,9 +175,6 @@ php artisan test
 npm run dev
 npm run build
 npm run build:ssr
-npm run lint
-npm run types
-npm run format
 ```
 
 ### Composer-скрипты

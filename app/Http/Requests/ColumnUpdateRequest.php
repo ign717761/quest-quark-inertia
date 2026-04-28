@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Column as ColumnModel;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ColumnUpdateRequest extends FormRequest
@@ -19,6 +20,7 @@ class ColumnUpdateRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
+            'type' => 'sometimes|string|in:'.implode(',', ColumnModel::types()),
         ];
     }
 }
