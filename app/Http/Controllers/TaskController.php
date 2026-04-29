@@ -16,11 +16,14 @@ class TaskController extends Controller
             Task::where('column_id', $column->id)->increment('position');
 
             Task::create([
+                'board_id' => $column->board_id,
                 'column_id' => $column->id,
-                'creator_id' => $request->user()->id,
+                'created_by' => $request->user()->id,
                 'assignee_id' => $request->validated()['assignee_id'] ?? null,
                 'title' => $request->validated()['title'],
                 'description' => $request->validated()['description'] ?? '',
+                'priority' => $request->validated()['priority'] ?? Task::PRIORITY_MEDIUM,
+                'due_date' => $request->validated()['due_date'] ?? null,
                 'position' => 0,
             ]);
         });
@@ -34,6 +37,8 @@ class TaskController extends Controller
             'title' => $request->validated()['title'],
             'description' => $request->validated()['description'] ?? '',
             'assignee_id' => $request->validated()['assignee_id'] ?? null,
+            'priority' => $request->validated()['priority'] ?? $task->priority,
+            'due_date' => $request->validated()['due_date'] ?? $task->due_date,
         ]);
 
         return back()->with('success', 'Задача обновлена');

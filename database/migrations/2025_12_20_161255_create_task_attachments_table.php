@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Board;
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -13,14 +13,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('board_members', function (Blueprint $table) {
+        Schema::create('task_attachments', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Board::class)->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(Task::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
-            $table->enum('role', ['owner', 'editor', 'viewer']);
+            $table->string('filename');
+            $table->string('path');
+            $table->string('mime_type')->nullable();
+            $table->unsignedBigInteger('size');
             $table->timestamps();
 
-            $table->unique(['board_id', 'user_id']);
+            $table->index('task_id');
         });
     }
 
@@ -29,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('board_members');
+        Schema::dropIfExists('task_attachments');
     }
 };

@@ -15,7 +15,7 @@ class TaskCommentUpdateRequest extends FormRequest
             return false;
         }
 
-        return (int) $comment->author_id === (int) $user->id;
+        return (int) $comment->user_id === (int) $user->id;
     }
 
     public function rules(): array

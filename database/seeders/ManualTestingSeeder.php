@@ -48,7 +48,7 @@ class ManualTestingSeeder extends Seeder
 
         $board = Board::updateOrCreate(
             [
-                'user_id' => $owner->id,
+                'owner_id' => $owner->id,
                 'title' => $definition['title'],
             ],
             [],
@@ -73,7 +73,7 @@ class ManualTestingSeeder extends Seeder
         foreach ($definition['columns'] as $columnIndex => $columnDefinition) {
             $column = Column::create([
                 'board_id' => $board->id,
-                'title' => $columnDefinition['title'],
+                'name' => $columnDefinition['title'],
                 'type' => $columnDefinition['type'],
                 'position' => $columnIndex,
             ]);
@@ -82,8 +82,9 @@ class ManualTestingSeeder extends Seeder
                 $assigneeKey = $taskDefinition['assignee'] ?? null;
 
                 $task = Task::create([
+                    'board_id' => $board->id,
                     'column_id' => $column->id,
-                    'creator_id' => $users[$taskDefinition['creator']]->id,
+                    'created_by' => $users[$taskDefinition['creator']]->id,
                     'assignee_id' => $assigneeKey ? $users[$assigneeKey]->id : null,
                     'title' => $taskDefinition['title'],
                     'description' => $taskDefinition['description'],
@@ -93,7 +94,7 @@ class ManualTestingSeeder extends Seeder
                 foreach ($taskDefinition['comments'] ?? [] as $commentDefinition) {
                     TaskComment::create([
                         'task_id' => $task->id,
-                        'author_id' => $users[$commentDefinition['author']]->id,
+                        'user_id' => $users[$commentDefinition['author']]->id,
                         'body' => $commentDefinition['body'],
                     ]);
                 }
@@ -134,7 +135,7 @@ class ManualTestingSeeder extends Seeder
                 'title' => 'Запуск продукта',
                 'owner' => 'admin',
                 'members' => [
-                    'admin' => 'admin',
+                    'admin' => 'owner',
                     'editor' => 'editor',
                     'viewer' => 'viewer',
                 ],
@@ -227,7 +228,7 @@ class ManualTestingSeeder extends Seeder
                 'title' => 'Внутренние улучшения',
                 'owner' => 'editor',
                 'members' => [
-                    'editor' => 'admin',
+                    'editor' => 'owner',
                     'admin' => 'editor',
                 ],
                 'columns' => [
@@ -285,7 +286,7 @@ class ManualTestingSeeder extends Seeder
                 'title' => 'Личная админская доска',
                 'owner' => 'admin',
                 'members' => [
-                    'admin' => 'admin',
+                    'admin' => 'owner',
                 ],
                 'columns' => [
                     [

@@ -34,14 +34,30 @@ class User extends Authenticatable
 
     public function boards(): BelongsToMany
     {
-        return $this->belongsToMany(Board::class, 'board_users')
+        return $this->belongsToMany(Board::class, 'board_members')
+            ->using(BoardMember::class)
             ->withPivot('role')
             ->withTimestamps();
     }
 
+    public function ownedBoards(): HasMany
+    {
+        return $this->hasMany(Board::class, 'owner_id');
+    }
+
+    public function boardMemberships(): HasMany
+    {
+        return $this->hasMany(BoardMember::class);
+    }
+
+    public function sentBoardInvitations(): HasMany
+    {
+        return $this->hasMany(BoardInvitation::class, 'invited_by');
+    }
+
     public function createdTasks(): HasMany
     {
-        return $this->hasMany(Task::class, 'creator_id');
+        return $this->hasMany(Task::class, 'created_by');
     }
 
     public function assignedTasks(): HasMany
@@ -51,6 +67,16 @@ class User extends Authenticatable
 
     public function taskComments(): HasMany
     {
-        return $this->hasMany(TaskComment::class, 'author_id');
+        return $this->hasMany(TaskComment::class);
+    }
+
+    public function taskAttachments(): HasMany
+    {
+        return $this->hasMany(TaskAttachment::class);
+    }
+
+    public function taskActivityLogs(): HasMany
+    {
+        return $this->hasMany(TaskActivityLog::class);
     }
 }

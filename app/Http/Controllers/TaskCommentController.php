@@ -13,7 +13,7 @@ class TaskCommentController extends Controller
     public function store(TaskCommentStoreRequest $request, Task $task)
     {
         $task->comments()->create([
-            'author_id' => $request->user()->id,
+            'user_id' => $request->user()->id,
             'body' => $request->validated()['body'],
         ]);
 
@@ -32,7 +32,7 @@ class TaskCommentController extends Controller
     public function destroy(TaskComment $comment)
     {
         $user = request()->user();
-        $isAuthor = (int) $comment->author_id === (int) $user?->id;
+        $isAuthor = (int) $comment->user_id === (int) $user?->id;
 
         abort_unless($isAuthor, 403);
 

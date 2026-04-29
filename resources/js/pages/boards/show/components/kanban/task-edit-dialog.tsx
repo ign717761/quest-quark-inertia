@@ -103,7 +103,7 @@ export default function TaskEditDialog({
     });
 
     const currentRole = boardUsers.find((u) => u.id === auth.user.id)?.pivot?.role;
-    const canManageTask = currentRole === 'admin' || currentRole === 'editor';
+    const canManageTask = currentRole === 'owner' || currentRole === 'editor';
     const canCreateComment = Boolean(
         boardUsers.find((user) => user.id === auth.user.id),
     );

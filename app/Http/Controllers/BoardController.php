@@ -47,6 +47,7 @@ class BoardController extends Controller
         return Inertia::render('boards/show/index', [
             'board' => $board->load([
                 'users',
+                'owner:id,name,email',
                 'columns' => fn ($query) => $query->ordered(),
                 'columns.tasks' => fn ($query) => $query->ordered(),
                 'columns.tasks.assignee:id,name',
@@ -62,10 +63,10 @@ class BoardController extends Controller
     {
         $board = Board::create([
             'title' => $request->validated()['title'],
-            'user_id' => $request->user()->id,
+            'owner_id' => $request->user()->id,
         ]);
 
-        $board->users()->attach($request->user()->id, ['role' => 'admin']);
+        $board->users()->attach($request->user()->id, ['role' => 'owner']);
 
         return redirect()->route('boards.show', $board->id);
     }

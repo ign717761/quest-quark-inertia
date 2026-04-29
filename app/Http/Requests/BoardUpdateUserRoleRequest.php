@@ -14,7 +14,7 @@ class BoardUpdateUserRoleRequest extends FormRequest
             && $this->user() !== null
             && $board->users()
                 ->where('user_id', $this->user()->id)
-                ->where('role', 'admin')
+                ->where('role', 'owner')
                 ->exists();
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Task;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TaskUpdateRequest extends FormRequest
@@ -21,6 +22,8 @@ class TaskUpdateRequest extends FormRequest
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'assignee_id' => 'nullable|exists:users,id',
+            'priority' => 'sometimes|string|in:'.implode(',', Task::priorities()),
+            'due_date' => 'nullable|date',
         ];
     }
 

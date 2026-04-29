@@ -15,7 +15,7 @@ class ColumnController extends Controller
     {
         Column::create([
             'board_id' => $board->id,
-            'title' => $request->validated()['title'],
+            'name' => $request->validated()['name'],
             'type' => $request->validated()['type'],
             'position' => ($board->columns()->max('position') ?? -1) + 1,
         ]);
@@ -25,7 +25,7 @@ class ColumnController extends Controller
 
     public function update(ColumnUpdateRequest $request, Column $column)
     {
-        $column->update($request->safe()->only(['title', 'type']));
+        $column->update($request->safe()->only(['name', 'type', 'wip_limit']));
 
         return back();
     }
@@ -49,7 +49,7 @@ class ColumnController extends Controller
             if ($destinationColumn === null) {
                 $destinationColumn = Column::create([
                     'board_id' => $board->id,
-                    'title' => 'Бэклог',
+                    'name' => 'Бэклог',
                     'type' => Column::TYPE_BACKLOG,
                     'position' => ($board->columns()->max('position') ?? -1) + 1,
                 ]);

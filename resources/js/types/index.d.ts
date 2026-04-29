@@ -15,7 +15,12 @@ export interface User {
 export interface Board {
     id: number;
     title: string;
+    owner_id: number;
     user_id: number;
+    description?: string | null;
+    visibility?: 'private' | 'workspace' | 'public';
+    icon?: string | null;
+    color?: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -23,21 +28,28 @@ export interface Board {
 export interface Column {
     id: number;
     board_id: number;
+    name: string;
     title: string;
     type: 'backlog' | 'in_progress' | 'done';
     position: number;
+    wip_limit?: number | null;
     created_at: string;
     updated_at: string;
 }
 
 export interface Task {
     id: number;
+    board_id: number;
     column_id: number;
+    created_by: number;
     creator_id: number;
     assignee_id: number | null;
     title: string;
-    description: string;
+    description: string | null;
+    priority: 'low' | 'medium' | 'high';
     position: number;
+    due_date?: string | null;
+    completed_at?: string | null;
     created_at: string;
     updated_at: string;
     creator?: User;
@@ -48,6 +60,7 @@ export interface Task {
 export interface TaskComment {
     id: number;
     task_id: number;
+    user_id: number;
     author_id: number;
     body: string;
     created_at: string;
@@ -59,7 +72,7 @@ export interface BoardUserPivot {
     id: number;
     board_id: number;
     user_id: number;
-    role: 'admin' | 'editor' | 'viewer';
+    role: 'owner' | 'editor' | 'viewer';
     created_at: string;
     updated_at: string;
 }
@@ -70,6 +83,7 @@ export interface ColumnWithTasks extends Column {
 
 export interface BoardData extends Board {
     columns: ColumnWithTasks[];
+    owner?: User;
     users?: User[];
 }
 

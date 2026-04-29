@@ -16,24 +16,24 @@ class BoardPolicy
     }
 
     /**
-     * Может ли пользователь редактировать задачи/колонки (editor или admin).
+     * Может ли пользователь редактировать задачи/колонки (owner или editor).
      */
     public function update(User $user, Board $board): bool
     {
         return $board->users()
             ->where('user_id', $user->id)
-            ->whereIn('role', ['admin', 'editor'])
+            ->whereIn('role', ['owner', 'editor'])
             ->exists();
     }
 
     /**
-     * Может ли пользователь удалять доску или менять настройки (только admin).
+     * Может ли пользователь удалять доску или менять настройки (только owner).
      */
     public function delete(User $user, Board $board): bool
     {
         return $board->users()
             ->where('user_id', $user->id)
-            ->where('role', 'admin')
+            ->where('role', 'owner')
             ->exists();
     }
 }

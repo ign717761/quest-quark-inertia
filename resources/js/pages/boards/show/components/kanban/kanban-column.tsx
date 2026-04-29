@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -19,7 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { router, usePage } from '@inertiajs/react';
-import { Check, GripVertical, Trash2 } from 'lucide-react';
+import { Check, MoreHorizontal, Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import KanbanTask from './kanban-task';
 
@@ -91,7 +90,7 @@ export default function KanbanColumn({
 
     const isAdmin =
         board?.users?.find((u) => u.id === auth.user.id)?.pivot?.role ===
-        'admin';
+        'owner';
     const canCreateTask =
         board?.users?.find((u) => u.id === auth.user.id)?.pivot?.role !==
         'viewer';
@@ -180,91 +179,109 @@ export default function KanbanColumn({
         renderedTasks.push(<DropPreview key={`drop-preview-${column.id}-end`} />);
     }
 
+    const columnTone = {
+        backlog: 'text-zinc-100',
+        in_progress: 'text-[#6ea4ff]',
+        done: 'text-[#3bd274]',
+    }[column.type] ?? 'text-[#c175ff]';
+
+    const titleTone =
+        column.title.toLowerCase().includes('review') ||
+        column.title.toLowerCase().includes('провер')
+            ? 'text-[#c175ff]'
+            : columnTone;
+
     return (
         <div
             ref={setNodeRef}
             style={style}
             {...attributes}
-            className="h-full w-80 shrink-0"
+            className="h-full w-[300px] shrink-0"
         >
-            <Card className="flex max-h-full flex-col border-none bg-secondary/30 shadow-none">
-                <CardHeader className="p-4">
-                    <CardTitle className="flex items-center justify-between gap-2 text-sm font-bold tracking-wider text-muted-foreground uppercase">
-                        <GripVertical
-                            className="h-5 w-5 cursor-grab text-muted-foreground active:cursor-grabbing"
-                            {...listeners}
-                        />
-
-                        {isEditing && isAdmin ? (
-                            <div className="flex flex-1 items-center gap-1">
-                                <Input
-                                    className="h-7 px-2 py-0 text-sm"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    autoFocus
-                                    onBlur={handleSave}
-                                    onKeyDown={(e) =>
-                                        e.key === 'Enter' && handleSave()
-                                    }
-                                />
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-7 w-7"
-                                    onClick={handleSave}
-                                >
-                                    <Check className="h-4 w-4 text-green-500" />
-                                </Button>
-                            </div>
-                        ) : (
-                            <span
-                                className={`flex-1 truncate ${isAdmin ? 'cursor-pointer transition-colors hover:text-foreground' : ''}`}
-                                onClick={() => isAdmin && setIsEditing(true)}
+            <section className="flex max-h-full min-h-[420px] flex-col rounded-lg border border-white/10 bg-[#14171d]/78 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur">
+                <div
+                    className="flex items-center justify-between gap-2 px-3 pt-3 pb-2"
+                    {...listeners}
+                >
+                    {isEditing && isAdmin ? (
+                        <div className="flex flex-1 items-center gap-1">
+                            <Input
+                                className="h-8 border-white/10 bg-black/30 px-2 py-0 text-sm text-white"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                autoFocus
+                                onBlur={handleSave}
+                                onKeyDown={(e) =>
+                                    e.key === 'Enter' && handleSave()
+                                }
+                            />
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-emerald-400 hover:bg-white/8"
+                                onClick={handleSave}
                             >
-                                {column.title}
-                            </span>
-                        )}
-
-                        <div className="flex items-center gap-2">
-                            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px]">
-                                {tasks.length}
-                            </span>
-
-                            {isAdmin && (
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-7 w-7 opacity-60 hover:opacity-100"
-                                    onClick={() => setIsDeleteOpen(true)}
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            )}
+                                <Check className="h-4 w-4" />
+                            </Button>
                         </div>
-                    </CardTitle>
-                </CardHeader>
+                    ) : (
+                        <button
+                            className={`min-w-0 flex-1 truncate text-left text-base font-bold ${titleTone} ${isAdmin ? 'cursor-pointer hover:text-white' : ''}`}
+                            onClick={() => isAdmin && setIsEditing(true)}
+                        >
+                            {column.title}
+                        </button>
+                    )}
 
-                <CardContent className="flex flex-1 flex-col gap-2 overflow-y-auto p-2">
+                    <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-white/9 px-2 text-xs font-semibold text-zinc-300">
+                        {tasks.length}
+                    </span>
+
+                    {canCreateTask && (
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 rounded-md text-zinc-400 hover:bg-white/8 hover:text-white"
+                            onClick={onAddTask}
+                        >
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    )}
+
+                    {isAdmin && (
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 rounded-md text-zinc-400 hover:bg-white/8 hover:text-white"
+                            onClick={() => setIsDeleteOpen(true)}
+                        >
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    )}
+                </div>
+
+                <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-3 py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <SortableContext
                         items={tasks.map((t) => getTaskDndId(t.id))}
                         strategy={verticalListSortingStrategy}
                     >
                         {renderedTasks}
                     </SortableContext>
-                </CardContent>
+                </div>
 
                 {canCreateTask && (
-                    <div className="p-2">
+                    <div className="px-3 py-3">
                         <Button
                             variant="ghost"
-                            className="h-8 w-full justify-start text-xs"
+                            className="h-9 w-full justify-center rounded-md text-sm text-zinc-400 hover:bg-white/7 hover:text-zinc-100"
                             onClick={onAddTask}
                         >
-                            + Добавить задачу
+                            <Plus className="mr-2 h-4 w-4" />
+                            Добавить задачу
                         </Button>
                     </div>
                 )}
-            </Card>
+            </section>
 
             <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                 <DialogContent className="sm:max-w-[425px]">

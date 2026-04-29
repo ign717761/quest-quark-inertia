@@ -17,6 +17,10 @@ class BoardUpdateRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'visibility' => 'sometimes|in:private,workspace,public',
+            'icon' => 'nullable|string|max:32',
+            'color' => 'nullable|string|max:32',
         ];
     }
 }

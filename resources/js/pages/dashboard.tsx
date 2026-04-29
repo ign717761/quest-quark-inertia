@@ -148,7 +148,7 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
                                         <div className="relative z-20 text-lg font-bold text-card-foreground">
                                             <span>{board.title}</span>
                                         </div>
-                                        {board.pivot?.role === 'admin' && (
+                                        {board.pivot?.role === 'owner' && (
                                             <Button
                                                 variant="ghost"
                                                 size="icon"

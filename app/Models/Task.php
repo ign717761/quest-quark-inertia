@@ -10,25 +10,65 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
+ * @property int $board_id
  * @property int $column_id
- * @property int $creator_id
+ * @property int $created_by
  * @property int|null $assignee_id
  * @property string $title
- * @property string $description
+ * @property string|null $description
+ * @property string $priority
  * @property int $position
+ * @property string|null $due_date
+ * @property string|null $completed_at
+ * @property Board $board
  * @property Column $column
  * @property User $creator
  * @property User|null $assignee
  * @property Collection<int, TaskComment> $comments
  */
-#[Fillable(['column_id', 'creator_id', 'assignee_id', 'title', 'description', 'position'])]
+#[Fillable(['board_id', 'column_id', 'title', 'description', 'priority', 'created_by', 'creator_id', 'assignee_id', 'position', 'due_date', 'completed_at'])]
 class Task extends Model
 {
     use HasFactory, SortsByPosition;
+
+    public const PRIORITY_LOW = 'low';
+    public const PRIORITY_MEDIUM = 'medium';
+    public const PRIORITY_HIGH = 'high';
+
+    protected $appends = ['creator_id'];
+
+    public static function priorities(): array
+    {
+        return [
+            self::PRIORITY_LOW,
+            self::PRIORITY_MEDIUM,
+            self::PRIORITY_HIGH,
+        ];
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'due_date' => 'date',
+            'completed_at' => 'datetime',
+        ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Task $task) {
+            if ($task->board_id === null && $task->column_id !== null) {
+                $task->board_id = Column::query()
+                    ->whereKey($task->column_id)
+                    ->value('board_id');
+            }
+        });
+    }
 
     public function buildSortQuery(): Builder
     {
@@ -40,9 +80,24 @@ class Task extends Model
         return $this->belongsTo(Column::class);
     }
 
+    public function getCreatorIdAttribute(): ?int
+    {
+        return $this->created_by;
+    }
+
+    public function setCreatorIdAttribute(int $value): void
+    {
+        $this->attributes['created_by'] = $value;
+    }
+
+    public function board(): BelongsTo
+    {
+        return $this->belongsTo(Board::class);
+    }
+
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'creator_id');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function assignee(): BelongsTo
@@ -53,6 +108,26 @@ class Task extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(TaskComment::class)->latest();
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'task_tags');
+    }
+
+    public function checklistItems(): HasMany
+    {
+        return $this->hasMany(TaskChecklistItem::class)->orderBy('position');
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(TaskAttachment::class);
+    }
+
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(TaskActivityLog::class)->latest();
     }
 
     #[Scope]

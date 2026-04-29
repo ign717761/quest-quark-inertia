@@ -21,7 +21,6 @@ import {
 import { BoardData } from '@/types';
 
 import { useBoardStore } from '@/stores/use-board-store';
-import { usePage } from '@inertiajs/react';
 
 import { useKanbanDnd } from '../hooks/useKanbanDnd';
 import {
@@ -34,17 +33,14 @@ import KanbanTask from './kanban/kanban-task';
 
 type KanbanBoardProps = {
     initialBoard: BoardData;
-    onAddColumn: () => void;
     onAddTask: (columnId: number) => void;
 };
 
 export function KanbanBoard({
     initialBoard,
-    onAddColumn,
     onAddTask,
 }: KanbanBoardProps) {
-    const { auth } = usePage<{ auth: { user: { id: number } } }>().props;
-    const { board, columns } = useBoardStore();
+    const { columns } = useBoardStore();
     const {
         activeTask,
         taskDropPreview,
@@ -52,10 +48,6 @@ export function KanbanBoard({
         handleDragOver,
         handleDragEnd,
     } = useKanbanDnd(initialBoard);
-    const canCreateColumn =
-        board?.users?.find((user) => user.id === auth.user.id)?.pivot?.role !==
-        'viewer';
-
     const sensors = useSensors(
         useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
         useSensor(TouchSensor, {
@@ -115,7 +107,7 @@ export function KanbanBoard({
     };
 
     return (
-        <div className="flex-1 overflow-x-auto pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex-1 overflow-x-auto bg-[radial-gradient(circle_at_20%_0%,rgba(77,101,217,0.08),transparent_28%),linear-gradient(180deg,#0a0c10_0%,#07090d_100%)] p-5 pb-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <DndContext
                 sensors={sensors}
                 collisionDetection={collisionDetection}
@@ -123,7 +115,7 @@ export function KanbanBoard({
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
             >
-                <div className="flex h-full items-start gap-4">
+                <div className="flex min-h-full items-start gap-5">
                     <SortableContext
                         items={columns.map((c) => getColumnDndId(c.id))}
                         strategy={horizontalListSortingStrategy}
@@ -147,15 +139,6 @@ export function KanbanBoard({
                             />
                         ))}
                     </SortableContext>
-
-                    {canCreateColumn && (
-                        <button
-                            onClick={onAddColumn}
-                            className="flex h-12 w-80 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 text-sm font-medium text-muted-foreground transition-all hover:border-muted-foreground/50 hover:bg-accent/50"
-                        >
-                            + Добавить колонку
-                        </button>
-                    )}
                 </div>
 
                 <DragOverlay

@@ -13,16 +13,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('columns', function (Blueprint $table) {
+        Schema::create('board_settings', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Board::class)->constrained()->cascadeOnDelete();
-            $table->string('name');
-            $table->enum('type', Column::types())->default(Column::TYPE_IN_PROGRESS);
-            $table->integer('position');
-            $table->unsignedInteger('wip_limit')->nullable();
+            $table->boolean('show_wip_limits')->default(true);
+            $table->boolean('show_task_count')->default(true);
+            $table->boolean('allow_member_invites')->default(true);
+            $table->boolean('allow_all_column_moves')->default(true);
+            $table->foreignIdFor(Column::class, 'default_task_column_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamps();
 
-            $table->index(['board_id', 'position']);
+            $table->unique('board_id');
         });
     }
 
@@ -31,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('columns');
+        Schema::dropIfExists('board_settings');
     }
 };

@@ -1,12 +1,13 @@
-import { Head, usePage } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { Head } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 import AppLayout from '@/layouts/app-layout';
 import { useBoardStore } from '@/stores/use-board-store';
-import { BoardData, SharedData } from '@/types';
+import { BoardData } from '@/types';
 
 import { BoardDialogs } from './components/BoardDialogs';
 import { BoardHeader } from './components/BoardHeader';
+import { BoardSettings } from './components/BoardSettings';
 import { KanbanBoard } from './components/KanbanBoard';
 import { useBoardModals } from './hooks/useBoardModals';
 
@@ -15,8 +16,8 @@ type ShowProps = {
 };
 
 export default function Show({ board: initialBoard }: ShowProps) {
-    const { auth } = usePage<SharedData>().props;
     const { board, setBoard } = useBoardStore();
+    const [activeView, setActiveView] = useState<'board' | 'settings'>('board');
 
     const modals = useBoardModals();
 
@@ -28,9 +29,6 @@ export default function Show({ board: initialBoard }: ShowProps) {
         return null;
     }
 
-    const currentUser = board.users?.find((user) => user.id === auth.user.id);
-    const isAdmin = currentUser?.pivot?.role === 'admin';
-
     return (
         <AppLayout
             breadcrumbs={[
@@ -40,20 +38,38 @@ export default function Show({ board: initialBoard }: ShowProps) {
         >
             <Head title={board.title} />
 
-            <div className="flex h-full flex-col overflow-hidden p-6">
+            <div className="flex min-h-[calc(100vh-4rem)] flex-col overflow-hidden bg-[#090b0f] text-zinc-100">
                 <BoardHeader
                     board={board}
-                    isAdmin={isAdmin}
-                    onRename={() => modals.rename.setOpen(true)}
-                    onDelete={() => modals.delete.setOpen(true)}
                     onUsers={() => modals.users.setOpen(true)}
+                    onCreateTask={() => {
+                        const firstColumn = board.columns[0];
+
+                        if (firstColumn) {
+                            modals.openTaskDialog(firstColumn.id);
+                        } else {
+                            modals.column.setOpen(true);
+                        }
+                    }}
+                    activeView={activeView}
+                    onViewChange={setActiveView}
                 />
 
-                <KanbanBoard
-                    initialBoard={initialBoard}
-                    onAddColumn={() => modals.column.setOpen(true)}
-                    onAddTask={modals.openTaskDialog}
-                />
+                {activeView === 'board' ? (
+                    <KanbanBoard
+                        initialBoard={initialBoard}
+                        onAddTask={modals.openTaskDialog}
+                    />
+                ) : (
+                    <BoardSettings
+                        board={board}
+                        users={board.users || []}
+                        onBack={() => setActiveView('board')}
+                        onAddColumn={() => modals.column.setOpen(true)}
+                        onDelete={() => modals.delete.setOpen(true)}
+                        onUsers={() => modals.users.setOpen(true)}
+                    />
+                )}
             </div>
 
             <BoardDialogs

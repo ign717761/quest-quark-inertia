@@ -13,18 +13,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property int $id
  * @property int $board_id
- * @property string $title
+ * @property string $name
  * @property string $type
  * @property int $position
+ * @property int|null $wip_limit
  * @property Board $board
  * @property Collection<int, Task> $tasks
  */
-#[Fillable(['board_id', 'title', 'type', 'position'])]
+#[Fillable(['board_id', 'name', 'title', 'type', 'position', 'wip_limit'])]
 class Column extends Model
 {
     public const TYPE_BACKLOG = 'backlog';
     public const TYPE_IN_PROGRESS = 'in_progress';
     public const TYPE_DONE = 'done';
+
+    protected $appends = ['title'];
 
     public static function types(): array
     {
@@ -40,9 +43,24 @@ class Column extends Model
         return $this->belongsTo(Board::class);
     }
 
+    public function getTitleAttribute(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setTitleAttribute(string $value): void
+    {
+        $this->attributes['name'] = $value;
+    }
+
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class)->orderBy('position');
+    }
+
+    public function defaultForBoardSettings(): HasMany
+    {
+        return $this->hasMany(BoardSetting::class, 'default_task_column_id');
     }
 
     #[Scope]

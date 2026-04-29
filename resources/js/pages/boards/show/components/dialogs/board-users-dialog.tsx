@@ -74,8 +74,8 @@ export default function BoardUsersDialog({
                             </div>
 
                             <div className="flex items-center gap-2">
-                                {/* Админ не может изменить роль самому себе или удалить себя здесь */}
-                                {user.pivot?.role !== 'admin' ? (
+                                {/* Владелец не может изменить роль самому себе или удалить себя здесь */}
+                                {user.pivot?.role !== 'owner' ? (
                                     <>
                                         <Select
                                             defaultValue={user.pivot?.role}
@@ -107,7 +107,7 @@ export default function BoardUsersDialog({
                                 ) : (
                                     <span className="flex items-center gap-1 px-2 text-xs font-semibold text-primary">
                                         <Shield className="h-3 w-3" />{' '}
-                                        Администратор
+                                        Владелец
                                     </span>
                                 )}
                             </div>
