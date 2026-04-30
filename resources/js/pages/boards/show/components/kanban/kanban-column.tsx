@@ -48,9 +48,8 @@ function DropSlot({
     return (
         <div
             ref={setNodeRef}
-            className={`transition-all ${
-                active || isOver ? 'py-1.5' : 'py-0.5'
-            }`}
+            className={`transition-all ${active || isOver ? 'py-1.5' : 'py-0.5'
+                }`}
         />
     );
 }
@@ -64,9 +63,8 @@ function DropPreview({
 }) {
     return (
         <div
-            className={`rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 text-primary transition-all ${
-                compact ? 'px-3 py-2 text-xs font-medium' : 'px-3 py-3 text-xs'
-            }`}
+            className={`rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 text-primary transition-all ${compact ? 'px-3 py-2 text-xs font-medium' : 'px-3 py-3 text-xs'
+                }`}
         >
             <div className="flex items-center gap-2">
                 <div className="h-px flex-1 bg-primary/40" />
@@ -190,11 +188,12 @@ export default function KanbanColumn({
             <Card className="flex max-h-full flex-col border-none bg-secondary/30 shadow-none">
                 <CardHeader className="p-4">
                     <CardTitle className="flex items-center justify-between gap-2 text-sm font-bold tracking-wider text-muted-foreground uppercase">
-                        <GripVertical
-                            className="h-5 w-5 cursor-grab text-muted-foreground active:cursor-grabbing"
-                            {...listeners}
-                        />
-
+                        {isEditing && isAdmin && (
+                            <GripVertical
+                                className="h-5 w-5 cursor-grab text-muted-foreground active:cursor-grabbing"
+                                {...listeners}
+                            />
+                        )}
                         {isEditing && isAdmin ? (
                             <div className="flex flex-1 items-center gap-1">
                                 <Input
@@ -295,8 +294,6 @@ export default function KanbanColumn({
                                     onSuccess: () => {
                                         setIsDeleteOpen(false);
                                     },
-                                    // При ошибке (например, нет прав) диалог просто закроется,
-                                    // а сервер вернёт ошибку, которую можно обработать глобально
                                 });
                             }}
                         >

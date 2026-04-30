@@ -340,20 +340,21 @@ export default function TaskEditDialog({
                                     </Button>
                                 )}
                             </div>
-                            <div className="flex gap-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => onOpenChange(false)}
-                                >
-                                    {canManageTask ? 'Отмена' : 'Закрыть'}
-                                </Button>
-                                {canManageTask && (
+                            {canManageTask && (
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => onOpenChange(false)}
+                                    >
+                                        Отмена
+                                    </Button>
+
                                     <Button type="submit" disabled={processing}>
                                         Сохранить
                                     </Button>
-                                )}
-                            </div>
+                                </div>
+                            )}
                         </DialogFooter>
                     </form>
 
@@ -452,18 +453,18 @@ export default function TaskEditDialog({
                                                     </div>
                                                     {editingCommentId !==
                                                         comment.id && (
-                                                        <div
-                                                            className="whitespace-pre-wrap text-sm break-words text-foreground"
-                                                        >
-                                                            {comment.body}
-                                                        </div>
-                                                    )}
+                                                            <div
+                                                                className="whitespace-pre-wrap text-sm break-words text-foreground"
+                                                            >
+                                                                {comment.body}
+                                                            </div>
+                                                        )}
                                                 </div>
                                             </div>
 
                                             {canManageComment &&
                                                 editingCommentId !==
-                                                    comment.id && (
+                                                comment.id && (
                                                     <div className="flex gap-2">
                                                         <Button
                                                             type="button"
