@@ -9,6 +9,7 @@ import { PropsWithChildren } from 'react';
 
 type BoardSettingsLayoutProps = PropsWithChildren<{
     board: BoardSettingsData;
+    title?: string;
 }>;
 
 const getSidebarNavItems = (board: BoardSettingsData): NavItem[] => [
@@ -31,6 +32,7 @@ const getSidebarNavItems = (board: BoardSettingsData): NavItem[] => [
 
 export default function BoardSettingsLayout({
     board,
+    title,
     children,
 }: BoardSettingsLayoutProps) {
     if (typeof window === 'undefined') {
@@ -44,7 +46,7 @@ export default function BoardSettingsLayout({
         <div className="px-4 py-6">
             <Heading
                 title="Настройки"
-                description={`Управляйте параметрами доски «${board.title}»`}
+                description={`Управляйте параметрами доски «${title ?? board.title}»`}
             />
 
             <div className="flex flex-col lg:flex-row lg:space-x-12">

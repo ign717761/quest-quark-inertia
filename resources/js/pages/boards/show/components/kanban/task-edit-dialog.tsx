@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import tasksRoute from '@/routes/tasks';
+import { useBoardStore } from '@/stores/use-board-store';
 import { SharedData, Task, type User as UserType } from '@/types';
 import { useForm, usePage, router } from '@inertiajs/react';
 import { Trash2, User } from 'lucide-react';
@@ -57,6 +58,13 @@ export default function TaskEditDialog({
     onOpenChange,
 }: TaskEditDialogProps) {
     const { auth } = usePage<SharedData>().props;
+    const board = useBoardStore((state) => state.board);
+    const setBoard = useBoardStore((state) => state.setBoard);
+    const updateTaskInStore = useBoardStore((state) => state.updateTask);
+    const removeTaskFromStore = useBoardStore((state) => state.removeTask);
+    const addComment = useBoardStore((state) => state.addComment);
+    const updateComment = useBoardStore((state) => state.updateComment);
+    const removeComment = useBoardStore((state) => state.removeComment);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isCommentDeleteDialogOpen, setIsCommentDeleteDialogOpen] =
         useState(false);
@@ -138,10 +146,26 @@ export default function TaskEditDialog({
             assignee_id:
                 data.assignee_id === 'none' ? null : Number(data.assignee_id),
         };
+        const boardSnapshot = board ? structuredClone(board) : null;
+        const assignee =
+            boardUsers.find((user) => user.id === payload.assignee_id) ?? null;
+
+        updateTaskInStore(task.id, {
+            title: payload.title,
+            description: payload.description,
+            assignee_id: payload.assignee_id,
+            assignee,
+            updated_at: new Date().toISOString(),
+        });
 
         patch(tasksRoute.update(task.id).url, {
             ...payload,
             onSuccess: () => onOpenChange(false),
+            onError: () => {
+                if (boardSnapshot) {
+                    setBoard(boardSnapshot);
+                }
+            },
             preserveScroll: true,
         } as any);
     };
@@ -151,10 +175,17 @@ export default function TaskEditDialog({
     };
 
     const confirmDelete = () => {
+        const boardSnapshot = board ? structuredClone(board) : null;
+
+        removeTaskFromStore(task.id);
+        setIsDeleteDialogOpen(false);
+        onOpenChange(false);
+
         destroy(tasksRoute.destroy(task.id).url, {
-            onSuccess: () => {
-                setIsDeleteDialogOpen(false);
-                onOpenChange(false);
+            onError: () => {
+                if (boardSnapshot) {
+                    setBoard(boardSnapshot);
+                }
             },
             preserveScroll: true,
         });
@@ -162,10 +193,27 @@ export default function TaskEditDialog({
 
     const submitComment = (e: React.FormEvent) => {
         e.preventDefault();
+        const boardSnapshot = board ? structuredClone(board) : null;
+        const tempCommentId = -Date.now();
+
+        addComment(task.id, {
+            id: tempCommentId,
+            task_id: task.id,
+            author_id: auth.user.id,
+            body: commentData.body,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            author: auth.user,
+        });
+        resetComment();
 
         postComment(`/tasks/${task.id}/comments`, {
             preserveScroll: true,
-            onSuccess: () => resetComment(),
+            onError: () => {
+                if (boardSnapshot) {
+                    setBoard(boardSnapshot);
+                }
+            },
         });
     };
 
@@ -175,11 +223,18 @@ export default function TaskEditDialog({
     };
 
     const submitEditComment = (commentId: number) => {
+        const boardSnapshot = board ? structuredClone(board) : null;
+
+        updateComment(commentId, editCommentData.body);
+        setEditingCommentId(null);
+        resetEditComment();
+
         patchComment(`/comments/${commentId}`, {
             preserveScroll: true,
-            onSuccess: () => {
-                setEditingCommentId(null);
-                resetEditComment();
+            onError: () => {
+                if (boardSnapshot) {
+                    setBoard(boardSnapshot);
+                }
             },
         });
     };
@@ -192,15 +247,22 @@ export default function TaskEditDialog({
     const confirmDeleteComment = () => {
         if (!commentToDeleteId) return;
 
+        const boardSnapshot = board ? structuredClone(board) : null;
+
+        removeComment(commentToDeleteId);
+        if (editingCommentId === commentToDeleteId) {
+            setEditingCommentId(null);
+            resetEditComment();
+        }
+        setIsCommentDeleteDialogOpen(false);
+        setCommentToDeleteId(null);
+
         router.delete(`/comments/${commentToDeleteId}`, {
             preserveScroll: true,
-            onSuccess: () => {
-                if (editingCommentId === commentToDeleteId) {
-                    setEditingCommentId(null);
-                    resetEditComment();
+            onError: () => {
+                if (boardSnapshot) {
+                    setBoard(boardSnapshot);
                 }
-                setIsCommentDeleteDialogOpen(false);
-                setCommentToDeleteId(null);
             },
         });
     };

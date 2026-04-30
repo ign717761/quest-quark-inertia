@@ -74,8 +74,12 @@ function normalizeColumns(columns: Column[]): ColumnDraft[] {
 
 export function BoardGeneralSettingsSection({
     board,
+    optimisticTitle,
+    onOptimisticTitleChange,
 }: {
     board: BoardSettingsData;
+    optimisticTitle: string;
+    onOptimisticTitleChange: (title: string) => void;
 }) {
     const { auth } = usePage<SharedData>().props;
     const currentUser = board.users.find((user) => user.id === auth.user.id);
@@ -86,18 +90,23 @@ export function BoardGeneralSettingsSection({
     const [isDeleteBoardOpen, setIsDeleteBoardOpen] = useState(false);
 
     const generalForm = useForm({
-        title: board.title,
+        title: optimisticTitle,
     });
 
     useEffect(() => {
-        generalForm.setData('title', board.title);
-    }, [board.title]);
+        generalForm.setData('title', optimisticTitle);
+    }, [optimisticTitle]);
 
     const submitGeneral = (event: React.FormEvent) => {
         event.preventDefault();
+        const previousTitle = board.title;
 
         generalForm.patch(boardsRoute.update(board.id).url, {
             preserveScroll: true,
+            onError: () => {
+                onOptimisticTitleChange(previousTitle);
+                generalForm.setData('title', previousTitle);
+            },
         });
     };
 
@@ -127,9 +136,10 @@ export function BoardGeneralSettingsSection({
                             id="board-title"
                             value={generalForm.data.title}
                             disabled={!canEditBoard || generalForm.processing}
-                            onChange={(event) =>
-                                generalForm.setData('title', event.target.value)
-                            }
+                            onChange={(event) => {
+                                generalForm.setData('title', event.target.value);
+                                onOptimisticTitleChange(event.target.value);
+                            }}
                         />
                         <InputError message={generalForm.errors.title} />
                     </div>
@@ -347,12 +357,28 @@ export function BoardColumnsSettingsSection({
 
     const submitCreateColumn = (event: React.FormEvent) => {
         event.preventDefault();
+        const previousColumns = columns;
+        const previousFormData = { ...createColumnForm.data };
+        const tempColumnId = -Date.now();
+
+        setColumns((current) => [
+            ...current,
+            {
+                id: tempColumnId,
+                title: createColumnForm.data.title,
+                type: createColumnForm.data.type,
+                position: current.length,
+                tasks_count: 0,
+            },
+        ]);
+        createColumnForm.reset();
+        createColumnForm.setData('type', 'in_progress');
 
         createColumnForm.post(columnsRoute.store(board.id).url, {
             preserveScroll: true,
-            onSuccess: () => {
-                createColumnForm.reset();
-                createColumnForm.setData('type', 'in_progress');
+            onError: () => {
+                setColumns(previousColumns);
+                createColumnForm.setData(previousFormData);
             },
         });
     };
@@ -362,6 +388,7 @@ export function BoardColumnsSettingsSection({
         if (!column) {
             return;
         }
+        const previousColumns = columns;
 
         if (column.title.trim() === '') {
             setColumnErrors((current) => ({
@@ -381,6 +408,7 @@ export function BoardColumnsSettingsSection({
             {
                 preserveScroll: true,
                 onError: (errors) => {
+                    setColumns(previousColumns);
                     setColumnErrors((current) => ({
                         ...current,
                         [columnId]:
@@ -597,12 +625,25 @@ export function BoardColumnsSettingsSection({
                                 if (!columnToDelete) {
                                     return;
                                 }
+                                const previousColumns = columns;
+
+                                setColumns((current) =>
+                                    current
+                                        .filter((column) => column.id !== columnToDelete.id)
+                                        .map((column, index) => ({
+                                            ...column,
+                                            position: index,
+                                        })),
+                                );
+                                setColumnToDelete(null);
 
                                 router.delete(
                                     columnsRoute.destroy(columnToDelete.id).url,
                                     {
                                         preserveScroll: true,
-                                        onSuccess: () => setColumnToDelete(null),
+                                        onError: () => {
+                                            setColumns(previousColumns);
+                                        },
                                     },
                                 );
                             }}
@@ -625,35 +666,81 @@ export function BoardMembersSettingsSection({
 
     const [memberToRemove, setMemberToRemove] = useState<User | null>(null);
     const [updatingMemberId, setUpdatingMemberId] = useState<number | null>(null);
+    const [users, setUsers] = useState<User[]>(board.users);
 
     const inviteForm = useForm({
         email: '',
     });
 
     const currentUser = useMemo(
-        () => board.users.find((user) => user.id === auth.user.id),
-        [auth.user.id, board.users],
+        () => users.find((user) => user.id === auth.user.id),
+        [auth.user.id, users],
     );
     const currentRole = currentUser?.pivot?.role;
     const canEditBoard = currentRole === 'admin' || currentRole === 'editor';
     const isAdmin = currentRole === 'admin';
 
+    useEffect(() => {
+        setUsers(board.users);
+    }, [board.users]);
+
     const submitInvite = (event: React.FormEvent) => {
         event.preventDefault();
+        const previousUsers = users;
+        const previousEmail = inviteForm.data.email;
+        const tempUserId = -Date.now();
+
+        setUsers((current) => [
+            ...current,
+            {
+                id: tempUserId,
+                name:
+                    inviteForm.data.email.split('@')[0] || inviteForm.data.email,
+                email: inviteForm.data.email,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                pivot: {
+                    id: tempUserId,
+                    board_id: board.id,
+                    user_id: tempUserId,
+                    role: 'editor',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                },
+            },
+        ]);
+        inviteForm.reset();
 
         inviteForm.post(boardsRoute.invite(board.id).url, {
             preserveScroll: true,
-            onSuccess: () => inviteForm.reset(),
+            onError: () => {
+                setUsers(previousUsers);
+                inviteForm.setData('email', previousEmail);
+            },
         });
     };
 
     const updateMemberRole = (userId: number, role: 'editor' | 'viewer') => {
+        const previousUsers = users;
         setUpdatingMemberId(userId);
+        setUsers((current) =>
+            current.map((user) =>
+                user.id === userId
+                    ? {
+                          ...user,
+                          pivot: user.pivot ? { ...user.pivot, role } : user.pivot,
+                      }
+                    : user,
+            ),
+        );
         router.patch(
             boardsUsersRoute.update({ board: board.id, user: userId }).url,
             { role },
             {
                 preserveScroll: true,
+                onError: () => {
+                    setUsers(previousUsers);
+                },
                 onFinish: () => setUpdatingMemberId(null),
             },
         );
@@ -663,6 +750,12 @@ export function BoardMembersSettingsSection({
         if (!memberToRemove) {
             return;
         }
+        const previousUsers = users;
+
+        setUsers((current) =>
+            current.filter((user) => user.id !== memberToRemove.id),
+        );
+        setMemberToRemove(null);
 
         router.delete(
             boardsUsersRoute.remove({
@@ -671,7 +764,9 @@ export function BoardMembersSettingsSection({
             }).url,
             {
                 preserveScroll: true,
-                onSuccess: () => setMemberToRemove(null),
+                onError: () => {
+                    setUsers(previousUsers);
+                },
             },
         );
     };
@@ -750,11 +845,11 @@ export function BoardMembersSettingsSection({
                 <div className="space-y-6">
                     <HeadingSmall
                         title="Участники доски"
-                        description={`${board.users.length} участников подключено к этой доске.`}
+                        description={`${users.length} участников подключено к этой доске.`}
                     />
 
                     <div className="space-y-4">
-                        {board.users.map((user) => {
+                        {users.map((user) => {
                             const role = user.pivot?.role;
                             const isCurrentUser = user.id === auth.user.id;
                             const isRoleEditable = isAdmin && role !== 'admin';
@@ -898,8 +993,18 @@ function BoardDeleteSection({
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }) {
+    const [isDeletingOptimistically, setIsDeletingOptimistically] =
+        useState(false);
+
     const deleteBoard = () => {
-        router.delete(boardsRoute.destroy(board.id).url);
+        setIsDeletingOptimistically(true);
+        onOpenChange(false);
+
+        router.delete(boardsRoute.destroy(board.id).url, {
+            onError: () => {
+                setIsDeletingOptimistically(false);
+            },
+        });
     };
 
     return (
@@ -913,7 +1018,9 @@ function BoardDeleteSection({
                     <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
                         <p className="font-medium">Внимание</p>
                         <p className="text-sm">
-                            Пожалуйста, действуйте осторожно, это непоправимо.
+                            {isDeletingOptimistically
+                                ? 'Удаляем доску...'
+                                : 'Пожалуйста, действуйте осторожно, это непоправимо.'}
                         </p>
                     </div>
 
@@ -925,7 +1032,7 @@ function BoardDeleteSection({
                         <Button
                             type="button"
                             variant="destructive"
-                            disabled={!isAdmin}
+                            disabled={!isAdmin || isDeletingOptimistically}
                             onClick={() => onOpenChange(true)}
                         >
                             Удалить доску

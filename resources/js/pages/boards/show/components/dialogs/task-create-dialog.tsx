@@ -17,7 +17,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useBoardStore } from '@/stores/use-board-store';
-import { useForm } from '@inertiajs/react';
+import { SharedData, Task } from '@/types';
+import { useForm, usePage } from '@inertiajs/react';
 import { User } from 'lucide-react';
 
 interface TaskCreateDialogProps {
@@ -31,7 +32,10 @@ export default function TaskCreateDialog({
     open,
     onOpenChange,
 }: TaskCreateDialogProps) {
+    const { auth } = usePage<SharedData>().props;
     const board = useBoardStore((state) => state.board);
+    const addTask = useBoardStore((state) => state.addTask);
+    const setBoard = useBoardStore((state) => state.setBoard);
 
     const { data, setData, post, processing, reset, errors } = useForm({
         title: '',
@@ -43,12 +47,39 @@ export default function TaskCreateDialog({
         e.preventDefault();
         if (!columnId) return;
 
+        const boardSnapshot = board
+            ? (structuredClone(board) as typeof board)
+            : null;
+        const tempTaskId = -Date.now();
+        const assigneeId =
+            data.assignee_id === 'none' ? null : Number(data.assignee_id);
+        const assignee =
+            board?.users?.find((user) => user.id === assigneeId) ?? null;
+        const optimisticTask: Task = {
+            id: tempTaskId,
+            column_id: columnId,
+            creator_id: auth.user.id,
+            assignee_id: assigneeId,
+            title: data.title,
+            description: data.description,
+            position: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            assignee,
+            comments: [],
+        };
+
+        addTask(optimisticTask);
+        reset();
+        onOpenChange(false);
+
         post(`/columns/${columnId}/tasks`, {
             ...data,
             assignee_id: data.assignee_id === 'none' ? null : data.assignee_id,
-            onSuccess: () => {
-                reset();
-                onOpenChange(false);
+            onError: () => {
+                if (boardSnapshot) {
+                    setBoard(boardSnapshot);
+                }
             },
             preserveScroll: true,
         } as any);

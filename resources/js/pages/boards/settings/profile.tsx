@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 import AppLayout from '@/layouts/app-layout';
 import boardsRoute from '@/routes/boards';
@@ -14,18 +15,28 @@ type BoardSettingsPageProps = {
 export default function BoardProfileSettings({
     board,
 }: BoardSettingsPageProps) {
+    const [optimisticTitle, setOptimisticTitle] = useState(board.title);
+
+    useEffect(() => {
+        setOptimisticTitle(board.title);
+    }, [board.title]);
+
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Главная', href: '/dashboard' },
-        { title: board.title, href: boardsRoute.show(board.id).url },
+        { title: optimisticTitle, href: boardsRoute.show(board.id).url },
         { title: `Настройки доски`, href: '#' },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Настройки доски ${board.title}`} />
+            <Head title={`Настройки доски ${optimisticTitle}`} />
 
-            <BoardSettingsLayout board={board}>
-                <BoardGeneralSettingsSection board={board} />
+            <BoardSettingsLayout board={board} title={optimisticTitle}>
+                <BoardGeneralSettingsSection
+                    board={board}
+                    optimisticTitle={optimisticTitle}
+                    onOptimisticTitleChange={setOptimisticTitle}
+                />
             </BoardSettingsLayout>
         </AppLayout>
     );
