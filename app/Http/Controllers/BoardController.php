@@ -45,17 +45,29 @@ class BoardController extends Controller
         $this->authorize('view', $board);
 
         return Inertia::render('boards/show/index', [
-            'board' => $board->load([
-                'users',
-                'columns' => fn ($query) => $query->ordered(),
-                'columns.tasks' => fn ($query) => $query->ordered(),
-                'columns.tasks.assignee:id,name',
-                'columns.tasks.comments' => function ($query) {
-                    $query->latest();
-                },
-                'columns.tasks.comments.author:id,name',
-            ]),
+            'board' => $this->loadBoardForShow($board),
         ]);
+    }
+
+    public function settings(Board $board): Response
+    {
+        $this->authorize('view', $board);
+
+        return $this->renderBoardSettingsPage($board, 'boards/settings/profile');
+    }
+
+    public function settingsColumns(Board $board): Response
+    {
+        $this->authorize('view', $board);
+
+        return $this->renderBoardSettingsPage($board, 'boards/settings/columns');
+    }
+
+    public function settingsMembers(Board $board): Response
+    {
+        $this->authorize('view', $board);
+
+        return $this->renderBoardSettingsPage($board, 'boards/settings/members');
     }
 
     public function store(BoardStoreRequest $request)
@@ -74,7 +86,7 @@ class BoardController extends Controller
     {
         $board->update($request->validated());
 
-        return redirect()->route('boards.show', $board);
+        return back();
     }
 
     public function destroy(Board $board)
@@ -117,5 +129,34 @@ class BoardController extends Controller
         $board->users()->detach($user->id);
 
         return back();
+    }
+
+    private function loadBoardForShow(Board $board): Board
+    {
+        return $board->load([
+            'users',
+            'columns' => fn ($query) => $query->ordered(),
+            'columns.tasks' => fn ($query) => $query->ordered(),
+            'columns.tasks.assignee:id,name',
+            'columns.tasks.comments' => function ($query) {
+                $query->latest();
+            },
+            'columns.tasks.comments.author:id,name',
+        ]);
+    }
+
+    private function loadBoardForSettings(Board $board): Board
+    {
+        return $board->load([
+            'users',
+            'columns' => fn ($query) => $query->ordered()->withCount('tasks'),
+        ]);
+    }
+
+    private function renderBoardSettingsPage(Board $board, string $component): Response
+    {
+        return Inertia::render($component, [
+            'board' => $this->loadBoardForSettings($board),
+        ]);
     }
 }

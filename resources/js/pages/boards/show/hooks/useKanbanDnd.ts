@@ -8,7 +8,6 @@ import { useBoardStore } from '@/stores/use-board-store';
 import { BoardData, Task } from '@/types';
 
 import {
-    getColumnDndId,
     getTaskDndId,
     isTaskSlotDndId,
     parseDndId,
@@ -21,11 +20,9 @@ type TaskDropPreview = {
 };
 
 export function useKanbanDnd(initialBoard: BoardData) {
-    const { columns, setBoard, updateColumns, updateColumnOrder } =
-        useBoardStore();
+    const { columns, setBoard, updateColumns } = useBoardStore();
 
     const [activeTask, setActiveTask] = useState<Task | null>(null);
-    const [activeColumnId, setActiveColumnId] = useState<number | null>(null);
     const [activeTaskOriginColumnId, setActiveTaskOriginColumnId] = useState<
         number | null
     >(null);
@@ -41,7 +38,6 @@ export function useKanbanDnd(initialBoard: BoardData) {
                   (column) => column.id === parseTaskSlotDndId(targetId).columnId,
               )
             : null) ||
-        columns.find((column) => getColumnDndId(column.id) === targetId) ||
         columns.find((column) =>
             column.tasks.some((task) => getTaskDndId(task.id) === targetId),
         );
@@ -74,10 +70,6 @@ export function useKanbanDnd(initialBoard: BoardData) {
 
         if (isTaskSlotDndId(targetId)) {
             return parseTaskSlotDndId(targetId).index;
-        }
-
-        if (getColumnDndId(destinationColumn.id) === targetId) {
-            return visibleTasks.length;
         }
 
         const overSortable = over?.data.current?.sortable as
@@ -123,44 +115,55 @@ export function useKanbanDnd(initialBoard: BoardData) {
     const handleDragStart = (event: DragStartEvent) => {
         const { type, originalId } = parseDndId(event.active.id as string);
 
-        if (type === 'task') {
-            const task = columns.flatMap((column) => column.tasks).find((t) => t.id === originalId);
-            const sourceColumn = findColumnByTaskId(originalId);
+        if (type !== 'task') {
+            return;
+        }
 
-            setActiveTask(task || null);
-            setActiveTaskOriginColumnId(sourceColumn?.id ?? null);
-            if (sourceColumn && task) {
-                setTaskDropPreview({
-                    columnId: sourceColumn.id,
-                    index: sourceColumn.tasks.findIndex((item) => item.id === task.id),
-                });
-            }
-        } else if (type === 'column') {
-            setActiveColumnId(originalId);
+        const task = columns
+            .flatMap((column) => column.tasks)
+            .find((item) => item.id === originalId);
+        const sourceColumn = findColumnByTaskId(originalId);
+
+        setActiveTask(task || null);
+        setActiveTaskOriginColumnId(sourceColumn?.id ?? null);
+
+        if (sourceColumn && task) {
+            setTaskDropPreview({
+                columnId: sourceColumn.id,
+                index: sourceColumn.tasks.findIndex((item) => item.id === task.id),
+            });
         }
     };
 
     const handleDragOver = (event: DragOverEvent) => {
         const { active, over } = event;
-        if (!over || !activeTask) return;
+        if (!over || !activeTask) {
+            return;
+        }
 
         const activeId = active.id as string;
         const overId = over.id as string;
-        if (activeId === overId) return;
+        if (activeId === overId) {
+            return;
+        }
 
         const { type: activeType } = parseDndId(activeId);
-        if (activeType !== 'task') return;
+        if (activeType !== 'task') {
+            return;
+        }
 
-        const activeCol = findColumnByTaskId(activeTask.id);
-        const overCol = findColumnByDropTarget(overId);
+        const activeColumn = findColumnByTaskId(activeTask.id);
+        const overColumn = findColumnByDropTarget(overId);
 
-        if (!activeCol || !overCol) return;
+        if (!activeColumn || !overColumn) {
+            return;
+        }
 
         setTaskDropPreview({
-            columnId: overCol.id,
+            columnId: overColumn.id,
             index: getPreviewIndex({
                 taskId: activeTask.id,
-                destinationColumnId: overCol.id,
+                destinationColumnId: overColumn.id,
                 targetId: overId,
                 active,
                 over,
@@ -182,15 +185,15 @@ export function useKanbanDnd(initialBoard: BoardData) {
 
         if (type === 'task') {
             handleTaskDragEnd(originalId, overId);
-        } else if (type === 'column') {
-            handleColumnDragEnd(originalId, overId);
         }
 
         cleanup();
     };
 
     const handleTaskDragEnd = (taskId: number, overId: string) => {
-        if (!activeTask || activeTaskOriginColumnId === null) return;
+        if (!activeTask || activeTaskOriginColumnId === null) {
+            return;
+        }
 
         const sourceColumn = columns.find(
             (column) => column.id === activeTaskOriginColumnId,
@@ -199,7 +202,9 @@ export function useKanbanDnd(initialBoard: BoardData) {
             columns.find((column) => column.id === taskDropPreview?.columnId) ??
             findColumnByDropTarget(overId);
 
-        if (!sourceColumn || !destinationColumn) return;
+        if (!sourceColumn || !destinationColumn) {
+            return;
+        }
 
         const destinationTasks = destinationColumn.tasks.filter(
             (task) => task.id !== taskId,
@@ -284,38 +289,14 @@ export function useKanbanDnd(initialBoard: BoardData) {
         );
     };
 
-    const handleColumnDragEnd = (columnId: number, overId: string) => {
-        const oldIndex = columns.findIndex((c) => c.id === columnId);
-        const newIndex = columns.findIndex(
-            (c) => c.id === parseDndId(overId).originalId,
-        );
-
-        if (oldIndex === newIndex || newIndex === -1) return;
-
-        const reorderedColumns = arrayMove(columns, oldIndex, newIndex);
-        updateColumnOrder(reorderedColumns.map((c) => c.id));
-
-        router.patch(
-            `/columns/${columnId}/move`,
-            { position: newIndex },
-            {
-                preserveScroll: true,
-                onSuccess: (page) => setBoard(page.props.board as BoardData),
-                onError: () => setBoard(initialBoard),
-            },
-        );
-    };
-
     const cleanup = () => {
         setActiveTask(null);
-        setActiveColumnId(null);
         setActiveTaskOriginColumnId(null);
         setTaskDropPreview(null);
     };
 
     return {
         activeTask,
-        activeColumnId,
         taskDropPreview,
         handleDragStart,
         handleDragOver,

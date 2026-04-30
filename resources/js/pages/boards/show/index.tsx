@@ -1,24 +1,22 @@
-import { Head, usePage } from '@inertiajs/react';
-import { useEffect } from 'react';
+import TaskCreateDialog from '@/pages/boards/show/components/dialogs/task-create-dialog';
+import { Head } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 import AppLayout from '@/layouts/app-layout';
 import { useBoardStore } from '@/stores/use-board-store';
-import { BoardData, SharedData } from '@/types';
+import { BoardData } from '@/types';
 
-import { BoardDialogs } from './components/BoardDialogs';
 import { BoardHeader } from './components/BoardHeader';
 import { KanbanBoard } from './components/KanbanBoard';
-import { useBoardModals } from './hooks/useBoardModals';
 
 type ShowProps = {
     board: BoardData;
 };
 
 export default function Show({ board: initialBoard }: ShowProps) {
-    const { auth } = usePage<SharedData>().props;
     const { board, setBoard } = useBoardStore();
-
-    const modals = useBoardModals();
+    const [isTaskOpen, setIsTaskOpen] = useState(false);
+    const [currentColumnId, setCurrentColumnId] = useState<number | null>(null);
 
     useEffect(() => {
         setBoard(initialBoard);
@@ -28,8 +26,10 @@ export default function Show({ board: initialBoard }: ShowProps) {
         return null;
     }
 
-    const currentUser = board.users?.find((user) => user.id === auth.user.id);
-    const isAdmin = currentUser?.pivot?.role === 'admin';
+    const openTaskDialog = (columnId: number) => {
+        setCurrentColumnId(columnId);
+        setIsTaskOpen(true);
+    };
 
     return (
         <AppLayout
@@ -41,30 +41,18 @@ export default function Show({ board: initialBoard }: ShowProps) {
             <Head title={board.title} />
 
             <div className="flex h-full flex-col overflow-hidden p-6">
-                <BoardHeader
-                    board={board}
-                    isAdmin={isAdmin}
-                    onRename={() => modals.rename.setOpen(true)}
-                    onDelete={() => modals.delete.setOpen(true)}
-                    onUsers={() => modals.users.setOpen(true)}
-                />
+                <BoardHeader board={board} />
 
                 <KanbanBoard
                     initialBoard={initialBoard}
-                    onAddColumn={() => modals.column.setOpen(true)}
-                    onAddTask={modals.openTaskDialog}
+                    onAddTask={openTaskDialog}
                 />
             </div>
 
-            <BoardDialogs
-                board={board}
-                users={board.users || []}
-                currentColumnId={modals.currentColumnId}
-                rename={modals.rename}
-                deleteModal={modals.delete}
-                usersModal={modals.users}
-                column={modals.column}
-                task={modals.task}
+            <TaskCreateDialog
+                columnId={currentColumnId}
+                open={isTaskOpen}
+                onOpenChange={setIsTaskOpen}
             />
         </AppLayout>
     );

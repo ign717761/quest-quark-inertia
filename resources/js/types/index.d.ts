@@ -26,6 +26,7 @@ export interface Column {
     title: string;
     type: 'backlog' | 'in_progress' | 'done';
     position: number;
+    tasks_count?: number;
     created_at: string;
     updated_at: string;
 }
@@ -71,6 +72,11 @@ export interface ColumnWithTasks extends Column {
 export interface BoardData extends Board {
     columns: ColumnWithTasks[];
     users?: User[];
+}
+
+export interface BoardSettingsData extends Board {
+    columns: Column[];
+    users: User[];
 }
 
 export type BoardRole = BoardUserPivot['role'];

@@ -3,7 +3,7 @@
 use App\Models\Board;
 use App\Models\User;
 
-test('board rename updates the board and redirects back to the board page', function () {
+test('board update changes title and redirects back', function () {
     $user = User::factory()->create();
     $board = Board::create([
         'title' => 'Старая доска',
@@ -13,8 +13,9 @@ test('board rename updates the board and redirects back to the board page', func
     $board->users()->attach($user->id, ['role' => 'admin']);
 
     $this->actingAs($user)
+        ->from(route('boards.settings', $board))
         ->patch(route('boards.update', $board), ['title' => 'Новая доска'])
-        ->assertRedirect(route('boards.show', $board));
+        ->assertRedirect(route('boards.settings', $board));
 
     expect($board->fresh()->title)->toBe('Новая доска');
 });

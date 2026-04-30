@@ -20,6 +20,9 @@ Route::middleware(['auth'])->group(function () {
 
     // --- Доски (Boards) ---
     Route::get('/boards/{board}', [BoardController::class, 'show'])->name('boards.show');
+    Route::get('/boards/{board}/settings', [BoardController::class, 'settings'])->name('boards.settings');
+    Route::get('/boards/{board}/settings/columns', [BoardController::class, 'settingsColumns'])->name('boards.settings.columns');
+    Route::get('/boards/{board}/settings/members', [BoardController::class, 'settingsMembers'])->name('boards.settings.members');
     Route::post('/boards', [BoardController::class, 'store'])->name('boards.store');
     Route::patch('/boards/{board}', [BoardController::class, 'update'])->name('boards.update');
     Route::delete('/boards/{board}', [BoardController::class, 'destroy'])->name('boards.destroy');

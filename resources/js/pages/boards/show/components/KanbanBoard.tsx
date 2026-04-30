@@ -13,38 +13,23 @@ import {
     useSensor,
     useSensors,
 } from '@dnd-kit/core';
-import {
-    SortableContext,
-    horizontalListSortingStrategy,
-} from '@dnd-kit/sortable';
 
 import { BoardData } from '@/types';
 
 import { useBoardStore } from '@/stores/use-board-store';
-import { usePage } from '@inertiajs/react';
 
 import { useKanbanDnd } from '../hooks/useKanbanDnd';
-import {
-    getColumnDndId,
-    getTaskDndId,
-    getTaskSlotDndId,
-} from '../utils/dndUtils';
+import { getTaskDndId, getTaskSlotDndId } from '../utils/dndUtils';
 import KanbanColumn from './kanban/kanban-column';
 import KanbanTask from './kanban/kanban-task';
 
 type KanbanBoardProps = {
     initialBoard: BoardData;
-    onAddColumn: () => void;
     onAddTask: (columnId: number) => void;
 };
 
-export function KanbanBoard({
-    initialBoard,
-    onAddColumn,
-    onAddTask,
-}: KanbanBoardProps) {
-    const { auth } = usePage<{ auth: { user: { id: number } } }>().props;
-    const { board, columns } = useBoardStore();
+export function KanbanBoard({ initialBoard, onAddTask }: KanbanBoardProps) {
+    const { columns } = useBoardStore();
     const {
         activeTask,
         taskDropPreview,
@@ -52,9 +37,6 @@ export function KanbanBoard({
         handleDragOver,
         handleDragEnd,
     } = useKanbanDnd(initialBoard);
-    const canCreateColumn =
-        board?.users?.find((user) => user.id === auth.user.id)?.pivot?.role !==
-        'viewer';
 
     const sensors = useSensors(
         useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -82,13 +64,11 @@ export function KanbanBoard({
         }
 
         const overIdString = String(overId);
-        const targetColumn = columns.find(
-            (column) =>
-                getColumnDndId(column.id) === overIdString ||
-                column.tasks.some((task) => getTaskDndId(task.id) === overIdString) ||
-                Array.from({ length: column.tasks.length + 1 }, (_, index) =>
-                    getTaskSlotDndId(column.id, index),
-                ).includes(overIdString),
+        const targetColumn = columns.find((column) =>
+            column.tasks.some((task) => getTaskDndId(task.id) === overIdString) ||
+            Array.from({ length: column.tasks.length + 1 }, (_, index) =>
+                getTaskSlotDndId(column.id, index),
+            ).includes(overIdString),
         );
 
         if (!targetColumn) {
@@ -124,38 +104,22 @@ export function KanbanBoard({
                 onDragEnd={handleDragEnd}
             >
                 <div className="flex h-full items-start gap-4">
-                    <SortableContext
-                        items={columns.map((c) => getColumnDndId(c.id))}
-                        strategy={horizontalListSortingStrategy}
-                    >
-                        {columns.map((column) => (
-                            <KanbanColumn
-                                key={column.id}
-                                column={column}
-                                tasks={column.tasks.filter(
-                                    (t) => t.id !== activeTask?.id,
-                                )}
-                                isTaskDragging={Boolean(activeTask)}
-                                dropPreviewIndex={
-                                    taskDropPreview?.columnId === column.id
-                                        ? taskDropPreview.index
-                                        : null
-                                }
-                                getTaskDndId={getTaskDndId}
-                                getTaskSlotDndId={getTaskSlotDndId}
-                                onAddTask={() => onAddTask(column.id)}
-                            />
-                        ))}
-                    </SortableContext>
-
-                    {canCreateColumn && (
-                        <button
-                            onClick={onAddColumn}
-                            className="flex h-12 w-80 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 text-sm font-medium text-muted-foreground transition-all hover:border-muted-foreground/50 hover:bg-accent/50"
-                        >
-                            + Добавить колонку
-                        </button>
-                    )}
+                    {columns.map((column) => (
+                        <KanbanColumn
+                            key={column.id}
+                            column={column}
+                            tasks={column.tasks.filter((task) => task.id !== activeTask?.id)}
+                            isTaskDragging={Boolean(activeTask)}
+                            dropPreviewIndex={
+                                taskDropPreview?.columnId === column.id
+                                    ? taskDropPreview.index
+                                    : null
+                            }
+                            getTaskDndId={getTaskDndId}
+                            getTaskSlotDndId={getTaskSlotDndId}
+                            onAddTask={() => onAddTask(column.id)}
+                        />
+                    ))}
                 </div>
 
                 <DragOverlay
