@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BoardController;
+use App\Http\Controllers\BoardInvitationController;
 use App\Http\Controllers\ColumnController;
 use App\Http\Controllers\TaskCommentController;
 use App\Http\Controllers\TaskController;
@@ -14,6 +15,9 @@ Route::get('/', function () {
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
+
+Route::get('/board-invitations/{token}/accept', [BoardInvitationController::class, 'accept'])
+    ->name('board-invitations.accept');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [BoardController::class, 'index'])->name('dashboard');

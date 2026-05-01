@@ -2,16 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\BoardInvitationCreated;
 use App\Http\Requests\BoardInviteRequest;
 use App\Http\Requests\BoardRemoveUserRequest;
 use App\Http\Requests\BoardStoreRequest;
 use App\Http\Requests\BoardUpdateRequest;
 use App\Http\Requests\BoardUpdateUserRoleRequest;
 use App\Models\Board;
+use App\Models\BoardInvitation;
 use App\Models\Column;
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -100,11 +105,33 @@ class BoardController extends Controller
 
     public function invite(BoardInviteRequest $request, Board $board)
     {
-        $userToInvite = User::where('email', $request->validated()['email'])->firstOrFail();
+        $email = $request->validated()['email'];
 
-        $board->users()->syncWithoutDetaching([$userToInvite->id => ['role' => 'editor']]);
+        $invitation = BoardInvitation::query()
+            ->where('board_id', $board->id)
+            ->where('email', $email)
+            ->whereNull('accepted_at')
+            ->latest('id')
+            ->first();
 
-        return back();
+        if (! $invitation instanceof BoardInvitation) {
+            $invitation = new BoardInvitation([
+                'board_id' => $board->id,
+                'email' => $email,
+            ]);
+        }
+
+        $invitation->fill([
+            'invited_by_user_id' => $request->user()->id,
+            'role' => 'editor',
+            'token' => Str::random(64),
+            'accepted_at' => null,
+        ]);
+        $invitation->save();
+
+        BoardInvitationCreated::dispatch($invitation);
+
+        return back()->with('success', 'Приглашение отправлено на email.');
     }
 
     public function updateUserRole(
@@ -126,7 +153,16 @@ class BoardController extends Controller
             return back()->withErrors(['error' => 'Вы не можете удалить себя из доски']);
         }
 
-        $board->users()->detach($user->id);
+        DB::transaction(function () use ($board, $user): void {
+            $columnIds = $board->columns()->pluck('id');
+
+            Task::query()
+                ->whereIn('column_id', $columnIds)
+                ->where('assignee_id', $user->id)
+                ->update(['assignee_id' => null]);
+
+            $board->users()->detach($user->id);
+        });
 
         return back();
     }

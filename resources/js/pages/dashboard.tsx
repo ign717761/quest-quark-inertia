@@ -9,16 +9,12 @@ import {
     type BreadcrumbItem,
 } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ClipboardList, Plus, TrendingUp, UserPlus, Users } from 'lucide-react';
+import { ClipboardList, Plus, TrendingUp, Users } from 'lucide-react';
 import { useState } from 'react';
 import {
     CreateBoardDialog,
     type CreateBoardFormData,
 } from './dashboard/components/create-board-dialog';
-import {
-    InviteUserDialog,
-    type InviteUserFormData,
-} from './dashboard/components/invite-user-dialog';
 
 interface DashboardProps {
     boards: DashboardBoard[];
@@ -27,13 +23,10 @@ interface DashboardProps {
 
 export default function Dashboard({ boards = [], stats }: DashboardProps) {
     const [open, setOpen] = useState(false);
-    const [inviteOpen, setInviteOpen] = useState(false);
-    const [selectedBoard, setSelectedBoard] = useState<number | null>(null);
 
     const createBoardForm = useForm<CreateBoardFormData>({
         title: '',
     });
-    const inviteForm = useForm<InviteUserFormData>({ email: '' });
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -41,19 +34,6 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
             onSuccess: () => {
                 setOpen(false);
                 createBoardForm.reset();
-            },
-        });
-    };
-
-    const handleInvite = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedBoard) return;
-
-        inviteForm.post(boardsRoute.invite(selectedBoard).url, {
-            onSuccess: () => {
-                setInviteOpen(false);
-                setSelectedBoard(null);
-                inviteForm.reset();
             },
         });
     };
@@ -148,21 +128,6 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
                                         <div className="relative z-20 text-lg font-bold text-card-foreground">
                                             <span>{board.title}</span>
                                         </div>
-                                        {board.pivot?.role === 'admin' && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="z-20 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    setSelectedBoard(board.id);
-                                                    setInviteOpen(true);
-                                                }}
-                                            >
-                                                <UserPlus className="h-4 w-4" />
-                                            </Button>
-                                        )}
                                     </div>
 
                                     <div className="absolute right-4 bottom-4 left-4 z-20 space-y-3">
@@ -212,18 +177,6 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
                 onOpenChange={setOpen}
                 form={createBoardForm}
                 onSubmit={submit}
-            />
-
-            <InviteUserDialog
-                open={inviteOpen}
-                onOpenChange={(val) => {
-                    setInviteOpen(val);
-                    if (!val) {
-                        setSelectedBoard(null);
-                    }
-                }}
-                form={inviteForm}
-                onSubmit={handleInvite}
             />
         </AppLayout>
     );

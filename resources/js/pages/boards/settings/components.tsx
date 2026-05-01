@@ -811,7 +811,7 @@ export function BoardMembersSettingsSection({
                 <div className="space-y-6">
                     <HeadingSmall
                         title="Приглашение участника"
-                        description="Приглашение работает для уже зарегистрированных пользователей по email."
+                        description="Отправьте письмо с приглашением. Пользователь сможет открыть ссылку и присоединиться к доске под этим email."
                     />
 
                     <form className="space-y-6" onSubmit={submitInvite}>
