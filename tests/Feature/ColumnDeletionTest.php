@@ -54,7 +54,8 @@ test('deleting a column moves its tasks into the first remaining column', functi
 
     $this->actingAs($user)
         ->delete(route('columns.destroy', $columnToDelete))
-        ->assertRedirect();
+        ->assertRedirect()
+        ->assertSessionHas('success', 'Колонка удалена.');
 
     expect(Column::find($columnToDelete->id))->toBeNull();
 
@@ -99,7 +100,8 @@ test('deleting the last column creates a backlog column and keeps its tasks', fu
 
     $this->actingAs($user)
         ->delete(route('columns.destroy', $onlyColumn))
-        ->assertRedirect();
+        ->assertRedirect()
+        ->assertSessionHas('success', 'Колонка удалена.');
 
     expect(Column::find($onlyColumn->id))->toBeNull();
 

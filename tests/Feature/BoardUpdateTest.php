@@ -15,7 +15,8 @@ test('board update changes title and redirects back', function () {
     $this->actingAs($user)
         ->from(route('boards.settings', $board))
         ->patch(route('boards.update', $board), ['title' => 'Новая доска'])
-        ->assertRedirect(route('boards.settings', $board));
+        ->assertRedirect(route('boards.settings', $board))
+        ->assertSessionHas('success', 'Доска обновлена.');
 
     expect($board->fresh()->title)->toBe('Новая доска');
 });

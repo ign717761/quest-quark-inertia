@@ -51,10 +51,7 @@ import { router, useForm, usePage } from '@inertiajs/react';
 import { AlertTriangle, GripVertical, Plus, Shield, Trash2, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
-type ColumnDraft = Pick<
-    Column,
-    'id' | 'title' | 'type' | 'position' | 'tasks_count'
->;
+type ColumnDraft = Pick<Column, 'id' | 'title' | 'type' | 'position'>;
 
 const columnTypeOptions: Array<{ value: Column['type']; label: string }> = [
     { value: 'backlog', label: 'Бэклог' },
@@ -218,7 +215,7 @@ function SortableColumnItem({
                             <GripVertical className="h-4 w-4" />
                         </Button>
 
-                        <div className="grid flex-1 gap-4 md:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
+                        <div className="grid flex-1 gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
                             <div className="space-y-2">
                                 <Label htmlFor={`column-title-${column.id}`}>
                                     Название
@@ -260,21 +257,6 @@ function SortableColumnItem({
                                 </Select>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Позиция</Label>
-                                <div className="flex h-10 items-center rounded-md border px-3 text-sm text-muted-foreground">
-                                    {column.position + 1}
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label>Задачи</Label>
-                                <div className="flex h-10 items-center">
-                                    <Badge variant="secondary">
-                                        {column.tasks_count ?? 0}
-                                    </Badge>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -283,7 +265,7 @@ function SortableColumnItem({
                     <div className="flex gap-2">
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="destructive"
                             disabled={disabled}
                             onClick={() => onDelete(column)}
                         >
@@ -776,40 +758,6 @@ export function BoardMembersSettingsSection({
             <div className="space-y-6">
                 <div className="space-y-6">
                     <HeadingSmall
-                        title="Роли и права"
-                        description="Управляйте участниками и их доступом к доске."
-                    />
-
-                    <Card>
-                        <CardContent className="space-y-4 pt-6">
-                            <div className="space-y-2">
-                                <Badge>Администратор</Badge>
-                                <p className="text-sm text-muted-foreground">
-                                    Управляет участниками, настройками и удалением
-                                    доски.
-                                </p>
-                            </div>
-                            <Separator />
-                            <div className="space-y-2">
-                                <Badge variant="secondary">Редактор</Badge>
-                                <p className="text-sm text-muted-foreground">
-                                    Может менять доску и колонки, но не управляет
-                                    администраторами.
-                                </p>
-                            </div>
-                            <Separator />
-                            <div className="space-y-2">
-                                <Badge variant="outline">Читатель</Badge>
-                                <p className="text-sm text-muted-foreground">
-                                    Только просмотр доски и задач.
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <div className="space-y-6">
-                    <HeadingSmall
                         title="Приглашение участника"
                         description="Отправьте письмо с приглашением. Пользователь сможет открыть ссылку и присоединиться к доске под этим email."
                     />
@@ -923,8 +871,7 @@ export function BoardMembersSettingsSection({
 
                                                 <Button
                                                     type="button"
-                                                    variant="outline"
-                                                    className="text-destructive"
+                                                    variant="destructive"
                                                     onClick={() =>
                                                         setMemberToRemove(user)
                                                     }

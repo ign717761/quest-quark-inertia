@@ -393,9 +393,8 @@ export default function TaskEditDialog({
                                 {canDeleteTask && (
                                     <Button
                                         type="button"
-                                        variant="ghost"
+                                        variant="destructive"
                                         size="icon"
-                                        className="text-destructive hover:bg-destructive/10"
                                         onClick={handleDelete}
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -544,8 +543,7 @@ export default function TaskEditDialog({
                                                         <Button
                                                             type="button"
                                                             size="sm"
-                                                            variant="ghost"
-                                                            className="text-destructive"
+                                                            variant="destructive"
                                                             onClick={() =>
                                                                 requestDeleteComment(
                                                                     comment.id,

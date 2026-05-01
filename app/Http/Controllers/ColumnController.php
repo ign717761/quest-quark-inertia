@@ -20,14 +20,14 @@ class ColumnController extends Controller
             'position' => ($board->columns()->max('position') ?? -1) + 1,
         ]);
 
-        return back();
+        return back()->with('success', 'Колонка создана.');
     }
 
     public function update(ColumnUpdateRequest $request, Column $column)
     {
         $column->update($request->safe()->only(['title', 'type']));
 
-        return back();
+        return back()->with('success', 'Колонка обновлена.');
     }
 
     public function destroy(Column $column)
@@ -63,7 +63,7 @@ class ColumnController extends Controller
                 ->decrement('position');
         });
 
-        return back();
+        return back()->with('success', 'Колонка удалена.');
     }
 
     private function moveTasksToColumn(Column $sourceColumn, Column $destinationColumn): void

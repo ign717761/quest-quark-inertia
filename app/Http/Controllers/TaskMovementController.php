@@ -55,6 +55,6 @@ class TaskMovementController extends Controller
             ]);
         });
 
-        return back();
+        return back()->with('success', 'Порядок колонок обновлен.');
     }
 }

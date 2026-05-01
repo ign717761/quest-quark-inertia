@@ -159,16 +159,6 @@ export default function Dashboard({ boards = [], stats }: DashboardProps) {
                             </div>
                         );
                     })}
-
-                    <button
-                        onClick={() => setOpen(true)}
-                        className="flex aspect-video flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/25 transition-all hover:border-muted-foreground/50 hover:bg-accent/50"
-                    >
-                        <Plus className="mb-3 h-10 w-10 text-muted-foreground" />
-                        <span className="text font-medium text-muted-foreground">
-                            Новая доска
-                        </span>
-                    </button>
                 </div>
             </div>
 

@@ -57,7 +57,8 @@ test('removing a board member unassigns their tasks in that board only', functio
 
     $this->actingAs($admin)
         ->delete(route('boards.users.remove', ['board' => $board, 'user' => $member]))
-        ->assertRedirect();
+        ->assertRedirect()
+        ->assertSessionHas('success', 'Участник удален из доски.');
 
     expect($taskInRemovedBoard->fresh()?->assignee_id)->toBeNull()
         ->and($taskInOtherBoard->fresh()?->assignee_id)->toBe($member->id)

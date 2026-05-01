@@ -77,21 +77,34 @@ class BoardController extends Controller
 
     public function store(BoardStoreRequest $request)
     {
-        $board = Board::create([
-            'title' => $request->validated()['title'],
-            'user_id' => $request->user()->id,
-        ]);
+        $board = DB::transaction(function () use ($request): Board {
+            $board = Board::create([
+                'title' => $request->validated()['title'],
+                'user_id' => $request->user()->id,
+            ]);
 
-        $board->users()->attach($request->user()->id, ['role' => 'admin']);
+            $board->users()->attach($request->user()->id, ['role' => 'admin']);
 
-        return redirect()->route('boards.show', $board->id);
+            Column::create([
+                'board_id' => $board->id,
+                'title' => 'Бэклог',
+                'type' => Column::TYPE_BACKLOG,
+                'position' => 0,
+            ]);
+
+            return $board;
+        });
+
+        return redirect()
+            ->route('boards.show', $board->id)
+            ->with('success', 'Доска создана.');
     }
 
     public function update(BoardUpdateRequest $request, Board $board)
     {
         $board->update($request->validated());
 
-        return back();
+        return back()->with('success', 'Доска обновлена.');
     }
 
     public function destroy(Board $board)
@@ -100,7 +113,9 @@ class BoardController extends Controller
 
         $board->delete();
 
-        return redirect()->route('dashboard');
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Доска удалена.');
     }
 
     public function invite(BoardInviteRequest $request, Board $board)
@@ -141,7 +156,7 @@ class BoardController extends Controller
     ) {
         $board->users()->updateExistingPivot($user->id, ['role' => $request->validated()['role']]);
 
-        return back();
+        return back()->with('success', 'Роль участника обновлена.');
     }
 
     public function removeUser(
@@ -164,7 +179,7 @@ class BoardController extends Controller
             $board->users()->detach($user->id);
         });
 
-        return back();
+        return back()->with('success', 'Участник удален из доски.');
     }
 
     private function loadBoardForShow(Board $board): Board
